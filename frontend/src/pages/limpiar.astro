@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Limpiar datos">
+  <section class="hero" style="padding:2rem 1rem;">
+    <h1 style="font-size:2.5rem;">🧹 Limpieza</h1>
+    <p>
+      Detectá y corregí problemas automáticamente. Datlas encuentra nulos, outliers,
+      duplicados y tipos incorrectos, y te sugiere cómo arreglarlos.
+    </p>
+  </section>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>Valores nulos</h3>
+      <p>
+        Detecta columnas con datos faltantes. Elegí entre eliminar filas,
+        rellenar con media/mediana, o interpolar.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Outliers</h3>
+      <p>
+        Identifica valores atípicos usando el método IQR (rango intercuartílico).
+        Marcá, filtrá o transformá outliers.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Duplicados</h3>
+      <p>
+        Encuentra filas duplicadas totales o parciales. Revisión interactiva
+        antes de eliminar.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Tipos de datos</h3>
+      <p>
+        Corrige automáticamente: fechas como texto → datetime, números
+        como string → float, booleanos mal representados.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Normalización</h3>
+      <p>
+        Escala tus datos: Min-Max, Standard (z-score), Robust Scaler.
+        Preparalos para machine learning.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Encoding</h3>
+      <p>
+        Variables categóricas a numéricas: One-Hot, Label, Ordinal.
+        Listo para cualquier modelo.
+      </p>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:2rem;">
+    <div style="display:inline-block; padding:1.5rem; background:rgba(167,139,250,0.08); border-radius:8px; border:1px solid rgba(167,139,250,0.2);">
+      <p style="color:#c4b5fd; font-weight:600;">⚡ Backend en desarrollo</p>
+      <p style="color:#6b6b8a; font-size:0.9rem; margin-top:0.5rem;">
+        La funcionalidad de limpieza está siendo implementada en el backend (FastAPI + Pandas).
+      </p>
+    </div>
+  </div>
+</Layout>

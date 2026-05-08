@@ -1,0 +1,52 @@
+node_modules/
+package-lock.json
+!frontend/package-lock.json
+package.json
+!frontend/package.json
+__pycache__/
+*.pyc
+.env
+opencode.json.generated
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/*.log
+
+# Plugins de OpenCode (no versionar)
+plugins/
+
+# Engram (memoria persistente local)
+.engram/
+
+# Backups y temporales
+*.bak
+*.bak.*
+.backup-*/
+*.tmp
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.astro/
+
+# Docker
+pgdata/
+pgadmin_data/
+
+# Datasets (no versionar datos crudos)
+data/raw/*
+data/processed/*
+!data/.gitkeep
+
+# Python
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+.vscode/

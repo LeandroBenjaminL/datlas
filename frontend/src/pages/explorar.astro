@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Explorar datos">
+  <section class="hero" style="padding:2rem 1rem;">
+    <h1 style="font-size:2.5rem;">🔍 Exploración</h1>
+    <p>
+      Metele un vistazo profundo a tus datos. Distribuciones, correlaciones,
+      estadísticas y gráficos generados automáticamente.
+    </p>
+  </section>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>Perfil automático</h3>
+      <p>
+        Resumen completo: tipos, nulos, unique values, min, max,
+        media, mediana, desvío estándar.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Distribuciones</h3>
+      <p>
+        Histogramas y boxplots para cada columna numérica.
+        Identificá sesgos y patrones de un vistazo.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Correlaciones</h3>
+      <p>
+        Matriz de correlación interactiva. Detectá relaciones
+        lineales y no lineales entre variables.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Estadísticas</h3>
+      <p>
+        Tests de normalidad, análisis de varianza, chi-cuadrado.
+        Todo el poder de SciPy sin escribir código.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Gráficos</h3>
+      <p>
+        Scatter plots, heatmaps, pairplots, gráficos de barras y líneas.
+        Visualizaciones listas para descargar.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Exportar</h3>
+      <p>
+        Descargá el perfil en PDF, HTML o Markdown.
+        Compartí resultados con tu equipo.
+      </p>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:2rem;">
+    <div style="display:inline-block; padding:1.5rem; background:rgba(167,139,250,0.08); border-radius:8px; border:1px solid rgba(167,139,250,0.2);">
+      <p style="color:#c4b5fd; font-weight:600;">⚡ Backend en desarrollo</p>
+      <p style="color:#6b6b8a; font-size:0.9rem; margin-top:0.5rem;">
+        La funcionalidad de exploración está siendo implementada en el backend (FastAPI + Pandas).
+      </p>
+    </div>
+  </div>
+</Layout>

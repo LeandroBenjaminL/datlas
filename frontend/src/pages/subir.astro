@@ -1,0 +1,63 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Subir dataset">
+  <section class="hero" style="padding:2rem 1rem;">
+    <h1 style="font-size:2.5rem;">Subir Dataset</h1>
+    <p>
+      Arrastrá tu archivo CSV, Excel o Parquet. Datlas lo recibe, lo valida y lo prepara.
+    </p>
+  </section>
+
+  <div style="max-width:600px; margin:0 auto;">
+    <div style="border:2px dashed #2a2a45; border-radius:12px; padding:3rem 2rem; text-align:center; background:#12122a;">
+      <p style="font-size:3rem; margin-bottom:1rem;">📂</p>
+      <p style="color:#94a3b8; margin-bottom:0.5rem;">Arrastrá tu archivo acá</p>
+      <p style="color:#4a4a6a; font-size:0.85rem;">CSV, Excel (.xlsx) o Parquet · Máx 100MB</p>
+
+      <div style="margin-top:2rem; padding:1.5rem; background:rgba(167,139,250,0.08); border-radius:8px; border:1px solid rgba(167,139,250,0.2);">
+        <p style="color:#c4b5fd; font-weight:600;">⚡ Backend en desarrollo</p>
+        <p style="color:#6b6b8a; font-size:0.9rem; margin-top:0.5rem;">
+          La API (FastAPI + Pandas) está siendo construida.
+          Muy pronto vas a poder subir datasets y procesarlos en vivo.
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem;">
+      <h3 style="color:#c4b5fd; margin-bottom:0.75rem;">Formatos soportados</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <thead>
+          <tr style="border-bottom:1px solid #1e1e3a;">
+            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Formato</th>
+            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Extensión</th>
+            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #12122a;">
+            <td style="padding:0.5rem;">CSV</td>
+            <td style="padding:0.5rem; color:#6b6b8a;">.csv</td>
+            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
+          </tr>
+          <tr style="border-bottom:1px solid #12122a;">
+            <td style="padding:0.5rem;">Excel</td>
+            <td style="padding:0.5rem; color:#6b6b8a;">.xlsx</td>
+            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
+          </tr>
+          <tr style="border-bottom:1px solid #12122a;">
+            <td style="padding:0.5rem;">Parquet</td>
+            <td style="padding:0.5rem; color:#6b6b8a;">.parquet</td>
+            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
+          </tr>
+          <tr style="border-bottom:1px solid #12122a;">
+            <td style="padding:0.5rem;">JSON</td>
+            <td style="padding:0.5rem; color:#6b6b8a;">.json</td>
+            <td style="padding:0.5rem; color:#f59e0b;">⏳ Pronto</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layout>
