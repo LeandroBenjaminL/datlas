@@ -10,14 +10,41 @@ const { title = 'Datlas' } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Datlas — El titán que carga tus datasets, los limpia, los explora y los transforma." />
     <title>{title} | Datlas</title>
+
+    <!-- Inter font desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
     <style>
+      /* ── Variables CSS (paleta Datlas) ── */
+      :root {
+        --bg-primary: #0a0a12;
+        --bg-card: #12122a;
+        --bg-card-hover: #18183a;
+        --border: #1e1e3a;
+        --border-hover: #3a3a5a;
+        --text-primary: #e2e2f0;
+        --text-secondary: #94a3b8;
+        --text-muted: #4a4a6a;
+        --accent: #a78bfa;
+        --accent-hover: #c4b5fd;
+        --accent-bg: rgba(167, 139, 250, 0.15);
+        --btn-primary: #7c3aed;
+        --btn-primary-hover: #6d28d9;
+        --gradient-header: linear-gradient(135deg, #1a1040 0%, #0d1b3e 50%, #0a0a12 100%);
+        --gradient-hero: linear-gradient(135deg, #a78bfa, #60a5fa);
+        --font-base: 'Inter', system-ui, -apple-system, sans-serif;
+        --max-width: 1100px;
+      }
+
       /* ── Reset y base ── */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html { font-size: 18px; scroll-behavior: smooth; }
       body {
-        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        background: #0a0a12;
-        color: #e2e2f0;
+        font-family: var(--font-base);
+        background: var(--bg-primary);
+        color: var(--text-primary);
         line-height: 1.7;
         min-height: 100vh;
         display: flex;
@@ -26,8 +53,8 @@ const { title = 'Datlas' } = Astro.props;
 
       /* ── Header ── */
       header {
-        background: linear-gradient(135deg, #1a1040 0%, #0d1b3e 50%, #0a0a12 100%);
-        border-bottom: 1px solid #2a2a45;
+        background: var(--gradient-header);
+        border-bottom: 1px solid var(--border);
         padding: 1rem 2rem;
         display: flex;
         justify-content: space-between;
@@ -38,11 +65,11 @@ const { title = 'Datlas' } = Astro.props;
       header a.logo {
         font-size: 1.6rem;
         font-weight: 800;
-        color: #a78bfa;
+        color: var(--accent);
         text-decoration: none;
         letter-spacing: -0.5px;
       }
-      header a.logo span { color: #e2e2f0; font-weight: 400; }
+      header a.logo span { color: var(--text-primary); font-weight: 400; }
 
       nav {
         display: flex;
@@ -50,7 +77,7 @@ const { title = 'Datlas' } = Astro.props;
         flex-wrap: wrap;
       }
       nav a {
-        color: #94a3b8;
+        color: var(--text-secondary);
         text-decoration: none;
         font-weight: 500;
         font-size: 0.95rem;
@@ -58,15 +85,15 @@ const { title = 'Datlas' } = Astro.props;
         padding: 0.3rem 0;
         border-bottom: 2px solid transparent;
       }
-      nav a:hover, nav a.active {
-        color: #c4b5fd;
-        border-bottom-color: #a78bfa;
+      nav a:hover {
+        color: var(--accent-hover);
+        border-bottom-color: var(--accent);
       }
 
       /* ── Main ── */
       main {
         flex: 1;
-        max-width: 1100px;
+        max-width: var(--max-width);
         margin: 0 auto;
         padding: 2rem;
         width: 100%;
@@ -76,14 +103,14 @@ const { title = 'Datlas' } = Astro.props;
       footer {
         text-align: center;
         padding: 2rem;
-        color: #4a4a6a;
+        color: var(--text-muted);
         font-size: 0.85rem;
-        border-top: 1px solid #1a1a2e;
+        border-top: 1px solid var(--border);
       }
       footer a { color: #7c6faf; text-decoration: none; }
-      footer a:hover { color: #a78bfa; }
+      footer a:hover { color: var(--accent); }
 
-      /* ── Componentes ── */
+      /* ── Hero ── */
       .hero {
         text-align: center;
         padding: 4rem 1rem;
@@ -91,7 +118,7 @@ const { title = 'Datlas' } = Astro.props;
       .hero h1 {
         font-size: 3.5rem;
         font-weight: 900;
-        background: linear-gradient(135deg, #a78bfa, #60a5fa);
+        background: var(--gradient-hero);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -99,11 +126,12 @@ const { title = 'Datlas' } = Astro.props;
       }
       .hero p {
         font-size: 1.2rem;
-        color: #94a3b8;
+        color: var(--text-secondary);
         max-width: 600px;
         margin: 0 auto 2rem;
       }
 
+      /* ── Botones ── */
       .btn {
         display: inline-block;
         padding: 0.75rem 2rem;
@@ -115,16 +143,17 @@ const { title = 'Datlas' } = Astro.props;
         cursor: pointer;
       }
       .btn-primary {
-        background: #7c3aed;
+        background: var(--btn-primary);
         color: white;
       }
-      .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+      .btn-primary:hover { background: var(--btn-primary-hover); transform: translateY(-1px); }
       .btn-outline {
-        border: 2px solid #4a4a6a;
-        color: #c4b5fd;
+        border: 2px solid var(--text-muted);
+        color: var(--accent-hover);
       }
-      .btn-outline:hover { border-color: #a78bfa; background: rgba(167,139,250,0.1); }
+      .btn-outline:hover { border-color: var(--accent); background: var(--accent-bg); }
 
+      /* ── Grid de tarjetas ── */
       .grid-3 {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -132,28 +161,30 @@ const { title = 'Datlas' } = Astro.props;
         margin: 3rem 0;
       }
       .card {
-        background: #12122a;
-        border: 1px solid #1e1e3a;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 2rem;
         transition: border-color 0.2s, transform 0.2s;
       }
       .card:hover {
-        border-color: #3a3a5a;
+        background: var(--bg-card-hover);
+        border-color: var(--border-hover);
         transform: translateY(-2px);
       }
-      .card h3 { color: #c4b5fd; margin-bottom: 0.75rem; font-size: 1.2rem; }
-      .card p { color: #94a3b8; font-size: 0.95rem; }
+      .card h3 { color: var(--accent-hover); margin-bottom: 0.75rem; font-size: 1.2rem; }
+      .card p { color: var(--text-secondary); font-size: 0.95rem; }
 
+      /* ── Badges ── */
       .badge {
         display: inline-block;
         padding: 0.2rem 0.7rem;
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
-        background: rgba(167,139,250,0.15);
-        color: #c4b5fd;
-        border: 1px solid rgba(167,139,250,0.3);
+        background: var(--accent-bg);
+        color: var(--accent-hover);
+        border: 1px solid rgba(167, 139, 250, 0.3);
         margin-bottom: 1rem;
       }
 
