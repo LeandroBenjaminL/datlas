@@ -7,7 +7,7 @@
 
 ## Resumen
 
-Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, tecnológico y profesional** que diferencie a Datlas de las herramientas corporativas genéricas.
+Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, limpio y profesional** con fondos grises neutros y violeta como acento. Inspirado en detechnologies.ca.
 
 ---
 
@@ -15,7 +15,7 @@ Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, tecnológ
 
 | Aspecto | Elección | Alternativas consideradas | Por qué |
 |---------|----------|---------------------------|---------|
-| **Paleta** | Oscuro violeta | Azul marino, claro minimalista, verde oscuro | Se destaca del azul corporativo genérico, transmite tecnología y creatividad |
+| **Paleta** | Gris oscuro neutro + acento violeta | Violeta sólido, azul marino, claro minimalista | El violeta sólido como fondo cansa; los grises neutros se ven más profesionales y el violeta como acento destaca mejor |
 | **Tipografía** | Inter (Google Fonts) | System UI, JetBrains Mono | Inter es moderna, profesional, usada por GitHub y Figma. Carga rápida desde Google Fonts |
 | **Logo** | Texto: "⚡ Datlas" | Logo ilustrado, icono personalizado | Por ahora texto. Simple, efectivo. Se puede iterar después |
 
@@ -25,15 +25,16 @@ Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, tecnológ
 
 | Uso | Color | Hex | CSS Variable |
 |-----|-------|-----|-------------|
-| Fondo principal | Negro suave | `#0a0a12` | `--bg-primary` |
-| Fondo tarjetas | Violeta muy oscuro | `#12122a` | `--bg-card` |
-| Bordes | Violeta tenue | `#1e1e3a` | `--border` |
+| Fondo principal | Gris muy oscuro | `#111827` | `--bg-primary` |
+| Fondo sección alterna | Gris oscuro | `#1f2937` | `--bg-section-alt` |
+| Fondo tarjetas | Gris pizarra | `#1e1e3a` | `--bg-card` |
+| Bordes | Gris tenue | `#2a2a45` | `--border` |
 | Texto principal | Blanco suave | `#e2e2f0` | `--text-primary` |
 | Texto secundario | Gris azulado | `#94a3b8` | `--text-secondary` |
 | Texto footer | Gris oscuro | `#4a4a6a` | `--text-muted` |
 | Acento principal | Violeta medio | `#a78bfa` | `--accent` |
 | Acento hover | Violeta más intenso | `#c4b5fd` | `--accent-hover` |
-| Gradient header | Violeta → Azul → Negro | `linear-gradient(135deg, #1a1040, #0d1b3e, #0a0a12)` | — |
+| Gradient header | Violeta → Negro | `linear-gradient(135deg, #1a1040, #111827)` | — |
 
 ---
 
