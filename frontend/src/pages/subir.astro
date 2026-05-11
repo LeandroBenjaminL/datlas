@@ -1,63 +1,121 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const API_BASE = 'http://localhost:8000';
 ---
 
 <Layout title="Subir dataset">
   <section class="hero" style="padding:2rem 1rem;">
     <h1 style="font-size:2.5rem;">Subir Dataset</h1>
     <p>
-      Arrastrá tu archivo CSV, Excel o Parquet. Datlas lo recibe, lo valida y lo prepara.
+      Arrastrá tu archivo CSV. Datlas lo recibe, lo valida y lo prepara para limpiar.
     </p>
   </section>
 
   <div style="max-width:600px; margin:0 auto;">
-    <div style="border:2px dashed #2a2a45; border-radius:12px; padding:3rem 2rem; text-align:center; background:#12122a;">
-      <p style="font-size:3rem; margin-bottom:1rem;">📂</p>
-      <p style="color:#94a3b8; margin-bottom:0.5rem;">Arrastrá tu archivo acá</p>
-      <p style="color:#4a4a6a; font-size:0.85rem;">CSV, Excel (.xlsx) o Parquet · Máx 100MB</p>
-
-      <div style="margin-top:2rem; padding:1.5rem; background:rgba(167,139,250,0.08); border-radius:8px; border:1px solid rgba(167,139,250,0.2);">
-        <p style="color:#c4b5fd; font-weight:600;">⚡ Backend en desarrollo</p>
-        <p style="color:#6b6b8a; font-size:0.9rem; margin-top:0.5rem;">
-          La API (FastAPI + Pandas) está siendo construida.
-          Muy pronto vas a poder subir datasets y procesarlos en vivo.
-        </p>
-      </div>
+    <div id="dropzone" style="border:2px dashed #2a2a45; border-radius:12px; padding:3rem 2rem; text-align:center; background:#12122a; cursor:pointer; transition: border-color 0.2s;">
+      <p style="font-size:3rem; margin-bottom:1rem;" id="drop-icon">📂</p>
+      <p style="color:#94a3b8; margin-bottom:0.5rem;" id="drop-text">Arrastrá tu archivo acá</p>
+      <p style="color:#4a4a6a; font-size:0.85rem;">CSV · Máx 100MB</p>
+      <input type="file" id="file-input" accept=".csv" style="display:none;" />
     </div>
 
-    <div style="margin-top:2rem;">
-      <h3 style="color:#c4b5fd; margin-bottom:0.75rem;">Formatos soportados</h3>
-      <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-        <thead>
-          <tr style="border-bottom:1px solid #1e1e3a;">
-            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Formato</th>
-            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Extensión</th>
-            <th style="text-align:left; padding:0.5rem; color:#94a3b8;">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.5rem;">CSV</td>
-            <td style="padding:0.5rem; color:#6b6b8a;">.csv</td>
-            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
-          </tr>
-          <tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.5rem;">Excel</td>
-            <td style="padding:0.5rem; color:#6b6b8a;">.xlsx</td>
-            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
-          </tr>
-          <tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.5rem;">Parquet</td>
-            <td style="padding:0.5rem; color:#6b6b8a;">.parquet</td>
-            <td style="padding:0.5rem; color:#22c55e;">✅ Listo</td>
-          </tr>
-          <tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.5rem;">JSON</td>
-            <td style="padding:0.5rem; color:#6b6b8a;">.json</td>
-            <td style="padding:0.5rem; color:#f59e0b;">⏳ Pronto</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="loading" style="display:none; text-align:center; padding:2rem;">
+      <p style="color:#a78bfa;">Subiendo y analizando...</p>
     </div>
+
+    <div id="results" style="display:none; margin-top:2rem;"></div>
   </div>
 </Layout>
+
+<script>
+  const API = 'http://localhost:8000';
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const dropIcon = document.getElementById('drop-icon');
+  const dropText = document.getElementById('drop-text');
+  const loading = document.getElementById('loading');
+  const results = document.getElementById('results');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#a78bfa';
+    dropzone.style.background = 'rgba(167,139,250,0.08)';
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.style.borderColor = '#2a2a45';
+    dropzone.style.background = '#12122a';
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.style.borderColor = '#2a2a45';
+    dropzone.style.background = '#12122a';
+    if (e.dataTransfer.files.length > 0) {
+      uploadFile(e.dataTransfer.files[0]);
+    }
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      uploadFile(fileInput.files[0]);
+    }
+  });
+
+  async function uploadFile(file) {
+    if (!file.name.endsWith('.csv')) {
+      results.style.display = 'block';
+      results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Solo archivos .csv</p></div>`;
+      return;
+    }
+
+    dropzone.style.display = 'none';
+    loading.style.display = 'block';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+
+      loading.style.display = 'none';
+      results.style.display = 'block';
+
+      if (!res.ok) {
+        results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Error: ${data.detail || 'desconocido'}</p></div>`;
+        return;
+      }
+
+      results.innerHTML = `
+        <div class="card" style="text-align:center;">
+          <p style="font-size:2rem; margin-bottom:0.5rem;">✅</p>
+          <h3 style="color:#22c55e; margin-bottom:1rem;">${data.filename} subido</h3>
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <tr style="border-bottom:1px solid #1e1e3a;">
+              <td style="padding:0.5rem; color:#94a3b8;">Filas</td>
+              <td style="padding:0.5rem; font-weight:600;">${data.rows}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1e1e3a;">
+              <td style="padding:0.5rem; color:#94a3b8;">Columnas</td>
+              <td style="padding:0.5rem; font-weight:600;">${data.columns}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1e1e3a;">
+              <td style="padding:0.5rem; color:#94a3b8;">Tamaño</td>
+              <td style="padding:0.5rem; font-weight:600;">${data.size_kb} KB</td>
+            </tr>
+            <tr>
+              <td style="padding:0.5rem; color:#94a3b8;">Columnas</td>
+              <td style="padding:0.5rem; font-weight:600; word-break:break-all;">${data.col_names.join(', ')}</td>
+            </tr>
+          </table>
+          <a href="/datlas/limpiar" class="btn btn-primary" style="margin-top:1.5rem;">Ir a limpiar</a>
+          <button class="btn btn-outline" style="margin-top:1.5rem; margin-left:0.5rem;" onclick="location.reload()">Subir otro</button>
+        </div>
+      `;
+    } catch (err) {
+      loading.style.display = 'none';
+      results.style.display = 'block';
+      results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Error de conexión: ¿la API está corriendo en puerto 8000?</p></div>`;
+    }
+  }
+</script>
