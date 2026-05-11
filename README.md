@@ -161,6 +161,17 @@ Aplica correcciones al dataset y devuelve el resultado limpio.
 
 ---
 
+## Documentación
+
+| Archivo | Propósito |
+|---------|-----------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitectura del proyecto |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Cómo contribuir |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Comandos de desarrollo |
+| [CHANGELOG.md](CHANGELOG.md) | Historial de versiones |
+| [docs/arquitectura.md](docs/arquitectura.md) | Decisiones técnicas detalladas |
+| [docs/decisiones/](docs/decisiones/) | Decisiones de diseño |
+
 ## Desarrollo del frontend
 
 El frontend Astro corre fuera de Docker:
