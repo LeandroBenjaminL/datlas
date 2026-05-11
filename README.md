@@ -1,10 +1,8 @@
 # ⚡ Datlas
 
-> **Cargá un dataset sucio. Datlos limpia, explora y transforma. Vos tomás decisiones.**
+> Cargá un dataset, limpiá los datos, explorá patrones y exportá resultados. Todo en un solo lugar. Sin instalar nada.
 
-Datlas no es solo otra herramientita de análisis. Es una **arquitectura profesional** pensada para resolver el problema real de cualquier persona que trabaja con datos: tenés un CSV lleno de problemas, no sabés qué contiene, y necesitás resultados rápido.
-
-**"No sabés qué hay en tus datos. Datlos te lo muestra."**
+Datlas es una **arquitectura profesional** para limpieza y análisis de datos. Subís un CSV, Datlas detecta problemas (nulos, outliers, duplicados), te muestra un reporte, y aplica las correcciones que elegís. Todo via API REST, con frontend en Astro y PostgreSQL para persistencia.
 
 ---
 
