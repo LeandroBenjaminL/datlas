@@ -52,10 +52,10 @@ async def root():
 
 
 # ── Routers ──
-from app.routers import upload
+from app.routers import upload, clean
 
 app.include_router(upload.router)
-# app.include_router(clean.router)
+app.include_router(clean.router)
 # app.include_router(explore.router)
 # app.include_router(export.router)
 
