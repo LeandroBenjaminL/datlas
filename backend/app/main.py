@@ -51,12 +51,13 @@ async def root():
     }
 
 
-# ── Importar routers (descomentar cuando existan) ──
-# from app.routers import upload, clean, explore, export
-# app.include_router(upload.router, prefix="/api", tags=["upload"])
-# app.include_router(clean.router, prefix="/api", tags=["clean"])
-# app.include_router(explore.router, prefix="/api", tags=["explore"])
-# app.include_router(export.router, prefix="/api", tags=["export"])
+# ── Routers ──
+from app.routers import upload
+
+app.include_router(upload.router)
+# app.include_router(clean.router)
+# app.include_router(explore.router)
+# app.include_router(export.router)
 
 
 # ── Quick test ──
