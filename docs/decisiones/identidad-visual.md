@@ -34,7 +34,11 @@ Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, limpio y 
 | Texto footer | Gris oscuro | `#4a4a6a` | `--text-muted` |
 | Acento principal | Violeta medio | `#a78bfa` | `--accent` |
 | Acento hover | Violeta más intenso | `#c4b5fd` | `--accent-hover` |
-| Gradient header | Violeta → Negro | `linear-gradient(135deg, #1a1040, #111827)` | — |
+| Fondo acento | Violeta traslúcido | `rgba(167, 139, 250, 0.15)` | `--accent-bg` |
+| Botón primario | Violeta intenso | `#7c3aed` | `--btn-primary` |
+| Botón hover | Violeta más oscuro | `#6d28d9` | `--btn-primary-hover` |
+| Gradient header | Violeta → Negro | `linear-gradient(135deg, #1a1040, #111827)` | `--gradient-header` |
+| Ancho máximo | 1100px | — | `--max-width` |
 
 ---
 
@@ -88,6 +92,18 @@ Definición del look & feel de Datlas. Se prioriza un estilo **oscuro, limpio y 
 │  Datlas · GitHub · Arquitectura profesional 2026 │
 └──────────────────────────────────────────────────┘
 ```
+
+---
+
+## Responsive
+
+| Breakpoint | Comportamiento |
+|------------|---------------|
+| **≤ 600px** | Hero titles bajan a 2.2rem, header se apila verticalmente, navegación centrada |
+| **> 600px** | Layout normal, header horizontal con nav a la derecha |
+| Grid tarjetas | `repeat(auto-fit, minmax(280px, 1fr))` — se achican hasta 280px, después apilan |
+
+Todas las definiciones están en `frontend/src/layouts/Layout.astro` dentro del `<style>` global.
 
 ---
 

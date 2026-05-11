@@ -1,3 +1,9 @@
+"""Upload router — file ingestion endpoint.
+
+Provides the POST /api/upload endpoint for uploading CSV files.
+Validates file type, saves to disk, and returns basic dataset metadata.
+"""
+
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pathlib import Path
 import pandas as pd
@@ -10,6 +16,17 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.post("/upload")
 async def upload_csv(file: UploadFile = File(...)):
+    """Upload a CSV file and return dataset metadata.
+
+    Args:
+        file: The CSV file uploaded as multipart/form-data.
+
+    Returns:
+        dict: Dataset summary with filename, size, row/column count, and column names.
+
+    Raises:
+        HTTPException 400: If the file is not a .csv.
+    """
     if not file.filename.endswith(".csv"):
         raise HTTPException(400, "Solo archivos .csv")
 

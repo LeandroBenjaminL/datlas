@@ -1,15 +1,48 @@
+"""Data cleaning service — quality detection and automated fixes.
+
+Provides the DataCleaner class that wraps a Pandas DataFrame and offers:
+- Null detection with imputation strategies
+- Outlier detection via the IQR method
+- Duplicate row detection
+- Type mismatch detection
+- Configurable cleaning pipeline
+"""
+
 import pandas as pd
 import numpy as np
 from pathlib import Path
 
 
 class DataCleaner:
+    """Analyze and clean tabular datasets using Pandas.
+
+    Loads a CSV file into a DataFrame and provides methods to detect
+    data quality issues and apply configurable fixes.
+
+    Args:
+        filepath: Path to the CSV file to load.
+
+    Attributes:
+        df: The loaded DataFrame (may be modified by clean()).
+        original_shape: Tuple (rows, columns) before any cleaning.
+        report: Dict with the latest analysis results.
+    """
+
     def __init__(self, filepath: str):
+        """Load the dataset and store its original shape."""
         self.df = pd.read_csv(filepath)
         self.original_shape = self.df.shape
         self.report = {}
 
     def detect_nulls(self) -> dict:
+        """Detect columns with missing values.
+
+        Returns a dict per column with null count, percentage, detected type,
+        and a suggested imputation strategy.
+
+        Returns:
+            dict: Column name -> {null_count, null_percent, dtype, suggested_fix}.
+        """
         null_counts = self.df.isnull().sum()
         null_percent = (null_counts / len(self.df) * 100).round(2)
         null_cols = null_counts[null_counts > 0]
@@ -25,6 +58,17 @@ class DataCleaner:
         return result
 
     def _suggest_null_fix(self, col: str) -> str:
+        """Recommend a null imputation strategy based on column dtype.
+
+        Numeric columns建議用median (robusto a outliers),
+        datetime y categóricas用mode (valor más frecuente).
+
+        Args:
+            col: Column name.
+
+        Returns:
+            str: Suggested fix description.
+        """
         dtype = self.df[col].dtype
         if pd.api.types.is_numeric_dtype(dtype):
             return "fill with median"
@@ -34,6 +78,13 @@ class DataCleaner:
             return "fill with mode (most frequent)"
 
     def detect_outliers(self) -> dict:
+        """Detect outliers in numeric columns using the IQR method.
+
+        Values outside [Q1 - 1.5*IQR, Q3 + 1.5*IQR] are flagged as outliers.
+
+        Returns:
+            dict: Column name -> {outlier_count, outlier_percent, lower_bound, upper_bound}.
+        """
         numeric_cols = self.df.select_dtypes(include=[np.number]).columns
         result = {}
         for col in numeric_cols:
@@ -53,6 +104,14 @@ class DataCleaner:
         return result
 
     def detect_duplicates(self) -> dict:
+        """Detect fully duplicate rows in the dataset.
+
+        Counts total duplicate rows and identifies which columns
+        contain duplicated values within those rows.
+
+        Returns:
+            dict: Total duplicate rows, percentage, and per-column duplicate counts.
+        """
         total_dupes = self.df.duplicated(keep=False).sum()
         partial_mask = self.df.duplicated(subset=None, keep=False)
         partial_cols = {}
@@ -69,6 +128,13 @@ class DataCleaner:
         }
 
     def detect_types(self) -> dict:
+        """Detect column types and flag possible type mismatches.
+
+        Checks if string columns could be parsed as datetime or numeric types.
+
+        Returns:
+            dict: Column name -> {detected_type, sample_values, possible_mismatch, suggested_type}.
+        """
         result = {}
         for col in self.df.columns:
             dtype = self.df[col].dtype
@@ -83,6 +149,17 @@ class DataCleaner:
         return result
 
     def _check_type_mismatch(self, col: str) -> str | None:
+        """Check if a column's string values could be parsed as datetime or numeric.
+
+        Samples the first 20 non-null values and attempts type coercion.
+        Returns the suggested type if a mismatch is likely, None otherwise.
+
+        Args:
+            col: Column name.
+
+        Returns:
+            str or None: "datetime", "numeric", or None if no mismatch.
+        """
         sample = self.df[col].dropna().astype(str).head(20)
         if sample.empty:
             return None
@@ -104,6 +181,13 @@ class DataCleaner:
         return None
 
     def analyze(self) -> dict:
+        """Run all detection methods and return a comprehensive quality report.
+
+        Executes null, outlier, duplicate, and type detection in sequence.
+
+        Returns:
+            dict: Report with original shape and findings for each category.
+        """
         self.report = {
             "original_shape": {
                 "rows": self.original_shape[0],
@@ -117,6 +201,22 @@ class DataCleaner:
         return self.report
 
     def clean(self, fixes: dict | None = None) -> dict:
+        """Apply cleaning fixes to a copy of the dataset.
+
+        Supports three fix types:
+        - fill_nulls: Dict of {col: strategy}, strategy is "median", "mean", or "mode"
+        - remove_outliers: List of column names to filter IQR outliers from
+        - remove_duplicates: Boolean, if True drops fully duplicate rows
+
+        Operates on a copy of the original DataFrame. The cleaned version
+        replaces self.df for further processing.
+
+        Args:
+            fixes: Optional config dict specifying which fixes to apply.
+
+        Returns:
+            dict: Summary of original shape, new shape, rows removed, and applied fixes.
+        """
         df = self.df.copy()
         applied = []
 
