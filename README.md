@@ -116,6 +116,51 @@ docker compose up --build
 
 ---
 
+## API Reference
+
+### POST `/api/upload`
+Sube un archivo CSV y devuelve metadata.
+
+**Request**: `multipart/form-data` con campo `file`
+**Response**:
+```json
+{
+  "filename": "test.csv",
+  "size_kb": 0.03,
+  "rows": 3,
+  "columns": 3,
+  "col_names": ["col1", "col2", "col3"],
+  "status": "ok"
+}
+```
+
+### POST `/api/clean/analyze`
+Analiza un dataset ya subido y detecta problemas.
+
+**Request**:
+```json
+{ "filename": "sucio.csv" }
+```
+**Response**: Reporte con nulos, outliers (IQR), duplicados y tipos de datos.
+
+### POST `/api/clean/apply`
+Aplica correcciones al dataset y devuelve el resultado limpio.
+
+**Request**:
+```json
+{
+  "filename": "sucio.csv",
+  "fixes": {
+    "fill_nulls": { "edad": "median", "ciudad": "mode" },
+    "remove_outliers": ["edad", "salario"],
+    "remove_duplicates": true
+  }
+}
+```
+**Response**: Dataset limpio guardado en `data/processed/` + resumen de cambios.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -128,10 +173,13 @@ datlas/
 │   └── app/
 │       ├── main.py           ← Entry point FastAPI
 │       ├── config.py         ← Settings (.env → Pydantic)
-│       ├── routers/          ← Endpoints REST
-│       ├── services/         ← Lógica (cleaner, explorer, pipeline)
-│       ├── db/               ← SQLAlchemy models + migraciones
-│       └── utils/            ← Validators, exporters
+│       ├── routers/
+│       │   ├── upload.py     ← POST /api/upload
+│       │   └── clean.py      ← POST /api/clean/analyze + /apply
+│       ├── services/
+│       │   └── cleaner.py    ← DataCleaner: nulos, outliers, dupes
+│       ├── db/               ← SQLAlchemy models (futuro)
+│       └── utils/            ← Validators, exporters (futuro)
 ├── frontend/
 │   ├── astro.config.mjs      ← Config Astro + GitHub Pages
 │   ├── package.json
@@ -151,7 +199,7 @@ datlas/
 
 - ✅ **Fase 0**: Docker + PostgreSQL + FastAPI esqueleto
 - ✅ **Fase 0.5**: Frontend Astro + GitHub Pages
-- ⬜ **Fase 1**: Perfil A — limpieza de datos (nulos, outliers, duplicados)
+- ✅ **Fase 1**: Perfil A — limpieza de datos (nulos, outliers, duplicados)
 - ⬜ **Fase 2**: Perfil B — exploración y profiling
 - ⬜ **Fase 3**: Perfil C — pipeline completo + exportación
 - ⬜ **Fase 4**: Deploy a AWS Lambda + API Gateway
