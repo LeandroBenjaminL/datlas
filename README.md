@@ -161,6 +161,34 @@ Aplica correcciones al dataset y devuelve el resultado limpio.
 
 ---
 
+## Desarrollo del frontend
+
+El frontend Astro corre fuera de Docker:
+
+```bash
+cd frontend
+npm install
+npm run dev        # → http://localhost:4321/datlas
+```
+
+La API debe estar corriendo (en Docker) en `http://localhost:8000`. El CORS ya está configurado para aceptar requests desde cualquier origen en desarrollo.
+
+---
+
+## Testing
+
+```bash
+# Test manual con curl
+curl -X POST http://localhost:8000/api/upload -F "file=@data/raw/test.csv"
+
+# Test de análisis
+curl -X POST http://localhost:8000/api/clean/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"filename": "test.csv"}'
+```
+
+---
+
 ## Estructura del proyecto
 
 ```

@@ -1,8 +1,6 @@
 # Datlas — Arquitectura
 
 > **Identidad**: Datlas = Datos + Atlas. El titán que carga datasets, los limpia, los explora, y los entrega transformados.
-> 
-> Frase: *"Tu dataset está roto, no sabés qué tiene, y necesitás resultados. Yo me encargo."*
 
 ---
 
@@ -37,7 +35,6 @@ Cada tecnología se eligió con un porqué. Si alguna vez alguien pregunta "¿po
 - Documentación Swagger automática → entrás a `/docs` y ves todos los endpoints
 - Validación con Pydantic → los datos entrantes se validan solos
 - Rendimiento comparable a Node.js/Go
-- **Es lo que están pidiendo las empresas hoy** (junto con experiencia en cloud)
 
 ---
 
@@ -53,7 +50,6 @@ Cada tecnología se eligió con un porqué. Si alguna vez alguien pregunta "¿po
 - El estándar de facto para análisis de datos
 - Soporte nativo para JSON/JSONB (podés guardar datos semi-estructurados)
 - Window functions, CTEs, agregaciones avanzadas
-- Extensible (PostGIS para datos geoespaciales si algún día hace falta)
 - pgAdmin incluido en Docker para desarrollo visual
 
 ---
@@ -64,11 +60,10 @@ Cada tecnología se eligió con un porqué. Si alguna vez alguien pregunta "¿po
 - **Entorno idéntico en todas partes**: tu Windows, mi Linux, AWS, todo igual
 - **Sin "en mi máquina funciona"**: el Dockerfile define exactamente qué versión de Python, qué dependencias
 - **PostgreSQL sin instalación**: levanta con un comando, se destruye con otro
-- **Prepara para AWS**: mismo Dockerfile se usa en ECS/Lambda container
 
 ---
 
-### 5. Frontend: Astro (futuro)
+### 5. Frontend: Astro
 
 | Alternativas | Por qué NO |
 |-------------|------------|
@@ -78,130 +73,98 @@ Cada tecnología se eligió con un porqué. Si alguna vez alguien pregunta "¿po
 
 **Por qué Astro**:
 - 0KB de JavaScript por defecto — la página carga instantáneo
-- Islas de interactividad: solo cargás JS donde realmente se necesita
-- Markdown nativo para reportes
+- Islas de interactividad: solo cargás JS donde realmente se necesita (upload, clean)
 - Build a estáticos → deploy a GitHub Pages en 2 comandos
-- Comunidad creciendo fuerte (40K+ estrellas en GitHub)
+- 4 páginas: landing, subir (con drag-and-drop), limpiar (con reporte interactivo), explorar (placeholder)
 
 ---
 
-### 6. Cloud: AWS (Free Tier)
-
-**Arquitectura objetivo**:
+### 6. Cloud: AWS (Free Tier) — futuro
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  DESARROLLO LOCAL (Docker)                                │
-│                                                           │
-│  docker-compose up                                        │
-│  ├── datlas-api (FastAPI + Pandas)                        │
-│  ├── datlas-db (PostgreSQL 16)                            │
-│  └── datlas-pgadmin (interfaz visual)                    │
-│                                                           │
-│  Todo en localhost, cero costo, iteración instantánea      │
-└──────────────────────────────────────────────────────────┘
-                          │
-                          │ deploy
-                          ▼
-┌──────────────────────────────────────────────────────────┐
-│  PRODUCCIÓN (AWS Free Tier)                               │
-│                                                           │
-│  GitHub Pages ────► Frontend Astro (estático)             │
-│       │                                                   │
-│       │ llamadas API                                      │
-│       ▼                                                   │
-│  API Gateway ────► Lambda (FastAPI via Mangum)            │
-│       │                                                   │
-│       │ persistencia                                      │
-│       ▼                                                   │
-│  RDS PostgreSQL (free tier 12 meses)                      │
-│       │                                                   │
-│       │ datasets                                          │
-│       ▼                                                   │
-│  S3 (almacenamiento de archivos)                          │
-└──────────────────────────────────────────────────────────┘
+DESARROLLO LOCAL (Docker)              PRODUCCIÓN (AWS Free Tier)
+docker compose up                      GitHub Pages → Frontend Astro
+├── datlas-api (FastAPI)    :8000      API Gateway → Lambda (FastAPI via Mangum)
+├── datlas-db (PostgreSQL)  :5432      RDS PostgreSQL
+└── datlas-pgadmin           :5050     S3 (datasets)
 ```
 
 ---
 
-### 7. Flujo de Datos (Pipeline Datlas)
-
-Datlas implementa **los 3 perfiles combinados**:
+### 7. Flujo de Datos
 
 ```
-            ┌─────────────────────┐
-            │   USUARIO SUBE CSV  │
-            └─────────┬───────────┘
-                      │
-                      ▼
-            ┌─────────────────────┐
-            │  PERFIL A: LIMPIEZA  │
-            │  • Detectar nulos    │
-            │  • Outliers (IQR)    │
-            │  • Duplicados        │
-            │  • Normalizar tipos  │
-            │  • Encoding           │
-            └─────────┬───────────┘
-                      │
-                      ▼
-            ┌─────────────────────┐
-            │ PERFIL B: EXPLORAR  │
-            │  • Profiling         │
-            │  • Distribuciones    │
-            │  • Correlaciones     │
-            │  • Estadísticas      │
-            │  • Gráficos          │
-            └─────────┬───────────┘
-                      │
-                      ▼
-            ┌─────────────────────┐
-            │ PERFIL C: ENTREGAR  │
-            │  • Dataset limpio    │
-            │  • Reporte HTML/PDF  │
-            │  • Datos en DB       │
-            │  • API para frontend │
-            └─────────────────────┘
+USUARIO SUBE CSV
+       │
+       ▼
+POST /api/upload
+  → Guarda en data/raw/
+  → Devuelve metadata (filas, columnas, tipos)
+       │
+       ▼
+POST /api/clean/analyze
+  → DataCleaner.detect_nulls()
+  → DataCleaner.detect_outliers()   (IQR)
+  → DataCleaner.detect_duplicates()
+  → DataCleaner.detect_types()
+       │
+       ▼
+POST /api/clean/apply
+  → fill_nulls (median/mean/mode)
+  → remove_outliers (filtro IQR)
+  → remove_duplicates
+  → Guarda en data/processed/
+  → Devuelve dataset limpio + reporte
+       │
+       ▼
+PERFIL B: Exploración (futuro)
+PERFIL C: Pipeline + Export (futuro)
 ```
 
 ---
 
-## Estructura del Proyecto Datlas
+## Estructura del Proyecto
 
 ```
-data-analyst-ecosystem/
+datlas/
 │
-├── docker-compose.yml           ← Levanta todo: API + DB + pgAdmin
-├── .env.example                 ← Variables de entorno para Datlas
+├── docker-compose.yml           ← 3 servicios: API + DB + pgAdmin
+├── .env.example                 ← Variables de entorno
 │
-├── backend/                     ← FastAPI: el cerebro de Datlas
-│   ├── Dockerfile               ← Imagen Python 3.12 + dependencias
-│   ├── requirements.txt         ← FastAPI, Pandas, SQLAlchemy, etc
+├── backend/                     ← FastAPI + Pandas
+│   ├── Dockerfile               ← Python 3.12-slim
+│   ├── requirements.txt         ← FastAPI, Pandas, SQLAlchemy
 │   └── app/
-│       ├── main.py              ← Entry point: app FastAPI
+│       ├── main.py              ← Entry point FastAPI + CORS
 │       ├── config.py            ← Settings desde .env
 │       ├── routers/
-│       │   ├── upload.py        ← POST /upload (subir dataset)
-│       │   ├── clean.py         ← POST /clean (limpiar datos)
-│       │   ├── explore.py       ← GET  /explore (perfil del dataset)
-│       │   └── export.py        ← GET  /export (descargar resultados)
+│       │   ├── upload.py        ← POST /api/upload
+│       │   └── clean.py         ← POST /api/clean/analyze + /apply
 │       ├── services/
-│       │   ├── cleaner.py       ← Perfil A: lógica de limpieza
-│       │   ├── explorer.py      ← Perfil B: profiling y estadísticas
-│       │   └── pipeline.py      ← Perfil C: orquestación del flujo
-│       ├── db/
-│       │   ├── models.py        ← SQLAlchemy: tablas PostgreSQL
-│       │   ├── connection.py    ← Conexión a la DB
-│       │   └── migrations/      ← Alembic (cuando haga falta)
-│       └── utils/
-│           ├── validators.py    ← Validación de archivos subidos
-│           └── exporters.py     ← CSV, JSON, Parquet, Excel
+│       │   └── cleaner.py       ← DataCleaner: nulos, outliers, dupes
+│       ├── db/                  ← (futuro) modelos SQLAlchemy
+│       └── utils/               ← (futuro) validadores, exportadores
 │
-├── data/                        ← Datasets (gitignored)
-│   ├── raw/                     ← Datasets crudos subidos
-│   └── processed/               ← Datasets limpios y transformados
+├── frontend/                    ← Astro 5 (estático)
+│   ├── astro.config.mjs         ← Config con base /datlas para GitHub Pages
+│   ├── package.json
+│   └── src/
+│       ├── layouts/
+│       │   └── Layout.astro     ← Layout base con header/footer
+│       └── pages/
+│           ├── index.astro      ← Landing
+│           ├── subir.astro      ← Upload con drag-and-drop + fetch API
+│           ├── limpiar.astro    ← Analyze + apply fixes desde la UI
+│           └── explorar.astro   ← Placeholder
+│
+├── data/
+│   ├── raw/                     ← Datasets crudos (no tocar)
+│   └── processed/               ← Datasets limpios (output)
 │
 └── docs/
-    └── arquitectura.md          ← Este archivo
+    ├── arquitectura.md          ← Este archivo
+    └── decisiones/
+        └── identidad-visual.md  ← Paleta de colores y estilo
 ```
 
 ---
@@ -232,37 +195,35 @@ DEBUG=true
 
 ---
 
-## Cómo Levantar el Proyecto
+## Cómo Levantar
 
 ```bash
-# 1. Clonar (si no está ya)
-git clone https://github.com/LeandroBenjaminL/datlas.git
-cd data-analyst-ecosystem
-
-# 2. Configurar variables de entorno
-cp .env.example .env
-# Editar .env si querés cambiar passwords
-
-# 3. Levantar todo con Docker
+# Backend (API + DB + pgAdmin)
 docker compose up --build
 
-# 4. Acceder
-# API:        http://localhost:8000
-# API Docs:   http://localhost:8000/docs
-# pgAdmin:    http://localhost:5050
-# PostgreSQL: localhost:5432
+# Frontend (para desarrollo)
+cd frontend && npm install && npm run dev
 ```
+
+| Servicio | URL | Login |
+|----------|-----|-------|
+| API FastAPI | http://localhost:8000 | — |
+| Swagger Docs | http://localhost:8000/docs | — |
+| Frontend (dev) | http://localhost:4321/datlas | — |
+| pgAdmin | http://localhost:5050 | admin@datlas.com / admin |
+| PostgreSQL | localhost:5432 | datlas / datlas_secreto_2026 |
 
 ---
 
-## Próximos Pasos (Roadmap)
+## Roadmap
 
 1. ✅ Docker + PostgreSQL + FastAPI esqueleto
-2. ⬜ Implementar Perfil A (limpieza)
-3. ⬜ Implementar Perfil B (exploración)
-4. ⬜ Frontend Astro (GitHub Pages)
-5. ⬜ Deploy a AWS Lambda + API Gateway
-6. ⬜ CI/CD con GitHub Actions
+2. ✅ Frontend Astro
+3. ✅ Perfil A — Limpieza (nulos, outliers, duplicados, tipos)
+4. ⬜ Perfil B — Exploración (distribuciones, correlaciones, estadísticas)
+5. ⬜ Perfil C — Pipeline completo + exportación
+6. ⬜ Deploy a AWS Lambda + API Gateway
+7. ⬜ CI/CD con GitHub Actions
 
 ---
 
@@ -270,5 +231,5 @@ docker compose up --build
 
 - **Todo en Docker desde el día 0**: no se instala nada en la máquina host
 - **Una decisión = una sección en este doc**: si cambiás algo, actualizás el porqué
-- **Testeable por archivo**: cada módulo tiene `if __name__ == "__main__"` para pruebas rápidas
+- **Separación de concerns**: services/ tiene la lógica pura, routers/ tiene el transporte
 - **Nunca decidir sin mostrar alternativas**: el alumno elige, el profe muestra opciones
