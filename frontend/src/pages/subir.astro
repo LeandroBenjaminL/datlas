@@ -1,30 +1,30 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-const API_BASE = 'http://localhost:8000';
 ---
 
 <Layout title="Subir dataset">
-  <section class="hero" style="padding:2rem 1rem;">
-    <h1 style="font-size:2.5rem;">Subir Dataset</h1>
-    <p>
-      Arrastrá tu archivo CSV. Datlas lo recibe, lo valida y lo prepara para limpiar.
-    </p>
-  </section>
+  <div class="page-title">
+    <h1>📁 Subir dataset</h1>
+    <p>Arrastrá tu archivo CSV o hace click para seleccionarlo. Soportamos archivos de hasta 100 MB.</p>
+  </div>
 
-  <div style="max-width:600px; margin:0 auto;">
-    <div id="dropzone" style="border:2px dashed #2a2a45; border-radius:12px; padding:3rem 2rem; text-align:center; background:#12122a; cursor:pointer; transition: border-color 0.2s;">
-      <p style="font-size:3rem; margin-bottom:1rem;" id="drop-icon">📂</p>
-      <p style="color:#94a3b8; margin-bottom:0.5rem;" id="drop-text">Arrastrá tu archivo acá</p>
-      <p style="color:#4a4a6a; font-size:0.85rem;">CSV · Máx 100MB</p>
-      <input type="file" id="file-input" accept=".csv" style="display:none;" />
+  <div style="max-width:520px; margin:0 auto;">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-inner">
+        <span class="dz-icon">📂</span>
+        <p class="dz-title">Arrastrá tu archivo acá</p>
+        <p class="dz-hint">o hace click para buscar</p>
+        <span class="dz-badge badge badge-blue">CSV · Máx 100 MB</span>
+      </div>
+      <input type="file" id="file-input" accept=".csv" />
     </div>
 
-    <div id="loading" style="display:none; text-align:center; padding:2rem;">
-      <p style="color:#a78bfa;">Subiendo y analizando...</p>
+    <div id="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Subiendo <span id="loading-name"></span>...</p>
     </div>
 
-    <div id="results" style="display:none; margin-top:2rem;"></div>
+    <div id="results" class="results-area"></div>
   </div>
 </Layout>
 
@@ -32,43 +32,43 @@ const API_BASE = 'http://localhost:8000';
   const API = 'http://localhost:8000';
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('file-input');
-  const dropIcon = document.getElementById('drop-icon');
-  const dropText = document.getElementById('drop-text');
   const loading = document.getElementById('loading');
   const results = document.getElementById('results');
+  const loadingName = document.getElementById('loading-name');
 
   dropzone.addEventListener('click', () => fileInput.click());
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.style.borderColor = '#a78bfa';
-    dropzone.style.background = 'rgba(167,139,250,0.08)';
+
+  ['dragover', 'dragleave', 'drop'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'dragover') {
+        dropzone.classList.add('dz-active');
+      } else {
+        dropzone.classList.remove('dz-active');
+      }
+      if (ev === 'drop' && e.dataTransfer.files.length > 0) {
+        uploadFile(e.dataTransfer.files[0]);
+      }
+    });
   });
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#2a2a45';
-    dropzone.style.background = '#12122a';
-  });
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.style.borderColor = '#2a2a45';
-    dropzone.style.background = '#12122a';
-    if (e.dataTransfer.files.length > 0) {
-      uploadFile(e.dataTransfer.files[0]);
-    }
-  });
+
   fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-      uploadFile(fileInput.files[0]);
-    }
+    if (fileInput.files.length > 0) uploadFile(fileInput.files[0]);
   });
 
   async function uploadFile(file) {
     if (!file.name.endsWith('.csv')) {
-      results.style.display = 'block';
-      results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Solo archivos .csv</p></div>`;
+      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
+        <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
+        <p style="color:var(--red); font-weight:600;">Solo archivos .csv</p>
+        <p class="text-secondary" style="font-size:0.85rem; margin-top:0.3rem;">Seleccioná un archivo con extensión .csv</p>
+        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Volver</button>
+      </div>`;
+      results.classList.add('fade-in');
       return;
     }
-
     dropzone.style.display = 'none';
+    loadingName.textContent = file.name;
     loading.style.display = 'block';
 
     const formData = new FormData();
@@ -77,45 +77,170 @@ const API_BASE = 'http://localhost:8000';
     try {
       const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
       const data = await res.json();
-
       loading.style.display = 'none';
-      results.style.display = 'block';
 
       if (!res.ok) {
-        results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Error: ${data.detail || 'desconocido'}</p></div>`;
+        results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
+          <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
+          <p style="color:var(--red); font-weight:600;">${data.detail || 'Error al subir el archivo'}</p>
+          <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Intentar de nuevo</button>
+        </div>`;
+        results.classList.add('fade-in');
         return;
       }
 
       results.innerHTML = `
-        <div class="card" style="text-align:center;">
-          <p style="font-size:2rem; margin-bottom:0.5rem;">✅</p>
-          <h3 style="color:#22c55e; margin-bottom:1rem;">${data.filename} subido</h3>
-          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-            <tr style="border-bottom:1px solid #1e1e3a;">
-              <td style="padding:0.5rem; color:#94a3b8;">Filas</td>
-              <td style="padding:0.5rem; font-weight:600;">${data.rows}</td>
-            </tr>
-            <tr style="border-bottom:1px solid #1e1e3a;">
-              <td style="padding:0.5rem; color:#94a3b8;">Columnas</td>
-              <td style="padding:0.5rem; font-weight:600;">${data.columns}</td>
-            </tr>
-            <tr style="border-bottom:1px solid #1e1e3a;">
-              <td style="padding:0.5rem; color:#94a3b8;">Tamaño</td>
-              <td style="padding:0.5rem; font-weight:600;">${data.size_kb} KB</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem; color:#94a3b8;">Columnas</td>
-              <td style="padding:0.5rem; font-weight:600; word-break:break-all;">${data.col_names.join(', ')}</td>
-            </tr>
-          </table>
-          <a href="/datlas/limpiar" class="btn btn-primary" style="margin-top:1.5rem;">Ir a limpiar</a>
-          <button class="btn btn-outline" style="margin-top:1.5rem; margin-left:0.5rem;" onclick="location.reload()">Subir otro</button>
+        <div class="card success-card fade-in">
+          <div class="success-header">
+            <span class="success-icon">✅</span>
+            <div>
+              <h3>${data.filename}</h3>
+              <p class="text-secondary" style="font-size:0.82rem;">Recibido y listo para procesar</p>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat">
+              <span class="stat-value">${data.rows}</span>
+              <span class="stat-label">Filas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">${data.columns}</span>
+              <span class="stat-label">Columnas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">${data.size_kb} KB</span>
+              <span class="stat-label">Tamaño</span>
+            </div>
+          </div>
+
+          <div class="cols-preview">
+            <p class="cols-title">Columnas detectadas</p>
+            <div class="cols-list">
+              ${data.col_names.map(c => `<span class="col-tag">${c}</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="success-actions">
+            <a href="/datlas/limpiar?file=${data.filename}" class="btn btn-primary">
+              🧹 Ir a limpiar
+            </a>
+            <a href="/datlas/explorar?file=${data.filename}" class="btn btn-outline">
+              🔍 Explorar directo
+            </a>
+            <button class="btn btn-outline btn-sm" onclick="location.reload()">Subir otro</button>
+          </div>
         </div>
       `;
-    } catch (err) {
+    } catch {
       loading.style.display = 'none';
-      results.style.display = 'block';
-      results.innerHTML = `<div class="card" style="text-align:center; border-color:#ef4444;"><p style="color:#ef4444;">Error de conexión: ¿la API está corriendo en puerto 8000?</p></div>`;
+      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
+        <p style="font-size:2rem; margin-bottom:0.3rem;">⚠️</p>
+        <p style="color:var(--red); font-weight:600;">Error de conexión</p>
+        <p class="text-secondary" style="font-size:0.85rem;">¿La API está corriendo en localhost:8000?</p>
+        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+      </div>`;
+      results.classList.add('fade-in');
     }
   }
 </script>
+
+<style>
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .dropzone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, var(--accent-bg), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .dropzone:hover::before, .dropzone.dz-active::before { opacity: 1; }
+  .dropzone input { display: none; }
+  .dropzone-inner {
+    position: relative;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .dz-icon { font-size: 3.5rem; margin-bottom: 0.3rem; }
+  .dz-title { color: var(--text-primary); font-weight: 600; font-size: 1rem; }
+  .dz-hint { color: var(--text-muted); font-size: 0.82rem; }
+  .dz-badge { margin-top: 0.5rem; }
+  .dz-active {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .loading-state {
+    display: none;
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  .loading-state p { color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .results-area { margin-top: 1.2rem; }
+
+  .success-card { border-color: rgba(34, 197, 94, 0.3); }
+  .success-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .success-icon { font-size: 2rem; }
+  .success-header h3 { margin: 0; font-size: 1.1rem; }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--accent); display: block; }
+  .stat-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+  .cols-preview { margin-bottom: 1.2rem; }
+  .cols-title { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600; }
+  .cols-list { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .col-tag {
+    padding: 0.15rem 0.5rem;
+    background: var(--accent-bg);
+    color: var(--accent-hover);
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+
+  .success-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+</style>

@@ -3,49 +3,51 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Limpiar datos">
-  <section class="hero" style="padding:2rem 1rem;">
-    <h1 style="font-size:2.5rem;">🧹 Limpieza</h1>
-    <p>
-      Datlas analiza tu dataset y detecta problemas automáticamente. Elegí qué corregir.
-    </p>
-  </section>
-
-  <div style="max-width:700px; margin:0 auto;">
-    <div style="display:flex; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
-      <input type="text" id="filename" value="sucio.csv" placeholder="nombre-del-archivo.csv"
-        style="flex:1; padding:0.75rem 1rem; border-radius:8px; border:1px solid #2a2a45; background:#12122a; color:#e2e2f0; font-size:1rem;" />
-      <button id="analyze-btn" class="btn btn-primary">Analizar</button>
-    </div>
-
-    <div id="loading" style="display:none; text-align:center; padding:2rem;">
-      <p style="color:#a78bfa;">Analizando dataset...</p>
-    </div>
-
-    <div id="report" style="display:none;"></div>
-    <div id="apply-section" style="display:none;"></div>
+  <div class="page-title">
+    <h1>🧹 Limpiar</h1>
+    <p>Analizá tu dataset y corregí problemas automáticamente.</p>
   </div>
+
+  <div id="app" style="max-width:700px; margin:0 auto;"></div>
 </Layout>
 
 <script>
   const API = 'http://localhost:8000';
+  const app = document.getElementById('app');
 
-  document.getElementById('analyze-btn').addEventListener('click', analyze);
-  document.getElementById('filename').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') analyze();
-  });
+  const params = new URLSearchParams(window.location.search);
+  const fileParam = params.get('file');
 
-  async function analyze() {
-    const filename = document.getElementById('filename').value.trim();
-    const reportDiv = document.getElementById('report');
-    const applySection = document.getElementById('apply-section');
-    const loading = document.getElementById('loading');
+  let state = 'loading';
+  let datasets = [];
+  let filename = fileParam || '';
+  let report = null;
+  let cleaningResult = null;
 
-    if (!filename) return;
+  async function init() {
+    try {
+      const res = await fetch(`${API}/api/datasets`);
+      const data = await res.json();
+      datasets = data.raw || [];
+    } catch {}
 
-    reportDiv.style.display = 'none';
-    applySection.style.display = 'none';
-    loading.style.display = 'block';
+    if (filename && datasets.some(d => d.filename === filename)) {
+      state = 'analyzing';
+      render();
+      await runAnalyze();
+    } else if (datasets.length > 0) {
+      filename = datasets[0].filename;
+      state = 'ready';
+      render();
+    } else {
+      state = 'no-data';
+      render();
+    }
+  }
 
+  async function runAnalyze() {
+    state = 'analyzing';
+    render();
     try {
       const res = await fetch(`${API}/api/clean/analyze`, {
         method: 'POST',
@@ -53,150 +55,23 @@ import Layout from '../layouts/Layout.astro';
         body: JSON.stringify({ filename }),
       });
       const data = await res.json();
-      loading.style.display = 'none';
-      reportDiv.style.display = 'block';
-
       if (!res.ok) {
-        reportDiv.innerHTML = `<div class="card" style="border-color:#ef4444; text-align:center;"><p style="color:#ef4444;">${data.detail || 'Error'}</p></div>`;
+        state = 'error';
+        report = data.detail;
+        render();
         return;
       }
-
-      const r = data.report;
-      let html = `<h2 style="color:#c4b5fd; margin-bottom:1rem;">Reporte: ${filename}</h2>`;
-      html += `<p style="color:#6b6b8a; margin-bottom:1.5rem;">Dataset: ${r.original_shape.rows} filas × ${r.original_shape.columns} columnas</p>`;
-
-      // Nulls
-      const nullKeys = Object.keys(r.nulls);
-      html += `<div class="card" style="margin-bottom:1rem;"><h3 style="color:#f59e0b;">📊 Valores nulos</h3>`;
-      if (nullKeys.length === 0) {
-        html += `<p style="color:#22c55e; margin-top:0.5rem;">✅ Sin nulos</p>`;
-      } else {
-        html += `<table style="width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:0.5rem;">
-          <tr style="border-bottom:1px solid #1e1e3a; color:#94a3b8;">
-            <th style="text-align:left; padding:0.4rem;">Columna</th>
-            <th style="text-align:right; padding:0.4rem;">Nulos</th>
-            <th style="text-align:right; padding:0.4rem;">%</th>
-            <th style="text-align:left; padding:0.4rem;">Sugerido</th>
-          </tr>`;
-        for (const col of nullKeys) {
-          html += `<tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.4rem;">${col}</td>
-            <td style="padding:0.4rem; text-align:right;">${r.nulls[col].null_count}</td>
-            <td style="padding:0.4rem; text-align:right;">${r.nulls[col].null_percent}%</td>
-            <td style="padding:0.4rem; color:#a78bfa;">${r.nulls[col].suggested_fix}</td>
-          </tr>`;
-        }
-        html += `</table>`;
-      }
-      html += `</div>`;
-
-      // Outliers
-      const outKeys = Object.keys(r.outliers);
-      html += `<div class="card" style="margin-bottom:1rem;"><h3 style="color:#ef4444;">📈 Outliers</h3>`;
-      if (outKeys.length === 0) {
-        html += `<p style="color:#22c55e; margin-top:0.5rem;">✅ Sin outliers</p>`;
-      } else {
-        html += `<table style="width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:0.5rem;">
-          <tr style="border-bottom:1px solid #1e1e3a; color:#94a3b8;">
-            <th style="text-align:left; padding:0.4rem;">Columna</th>
-            <th style="text-align:right; padding:0.4rem;">Outliers</th>
-            <th style="text-align:right; padding:0.4rem;">%</th>
-            <th style="text-align:center; padding:0.4rem;">Rango válido</th>
-          </tr>`;
-        for (const col of outKeys) {
-          html += `<tr style="border-bottom:1px solid #12122a;">
-            <td style="padding:0.4rem;">${col}</td>
-            <td style="padding:0.4rem; text-align:right;">${r.outliers[col].outlier_count}</td>
-            <td style="padding:0.4rem; text-align:right;">${r.outliers[col].outlier_percent}%</td>
-            <td style="padding:0.4rem; text-align:center; color:#a78bfa;">[${r.outliers[col].lower_bound}, ${r.outliers[col].upper_bound}]</td>
-          </tr>`;
-        }
-        html += `</table>`;
-      }
-      html += `</div>`;
-
-      // Duplicates
-      html += `<div class="card" style="margin-bottom:1rem;"><h3 style="color:#f97316;">🔁 Duplicados</h3>`;
-      if (r.duplicates.total_duplicate_rows === 0) {
-        html += `<p style="color:#22c55e; margin-top:0.5rem;">✅ Sin duplicados</p>`;
-      } else {
-        html += `<p style="margin-top:0.5rem;">${r.duplicates.total_duplicate_rows} filas duplicadas (${r.duplicates.duplicate_percent}%)</p>`;
-      }
-      html += `</div>`;
-
-      // Types
-      const typeKeys = Object.keys(r.types);
-      html += `<div class="card" style="margin-bottom:1rem;"><h3 style="color:#06b6d4;">🏷️ Tipos de datos</h3>
-        <table style="width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:0.5rem;">
-          <tr style="border-bottom:1px solid #1e1e3a; color:#94a3b8;">
-            <th style="text-align:left; padding:0.4rem;">Columna</th>
-            <th style="text-align:left; padding:0.4rem;">Tipo</th>
-            <th style="text-align:left; padding:0.4rem;">Muestra</th>
-          </tr>`;
-      for (const col of typeKeys) {
-        const t = r.types[col];
-        html += `<tr style="border-bottom:1px solid #12122a;">
-          <td style="padding:0.4rem;">${col}</td>
-          <td style="padding:0.4rem;">${t.detected_type}${t.possible_mismatch ? `<span style="color:#f59e0b;"> → ${t.suggested_type}</span>` : ''}</td>
-          <td style="padding:0.4rem; color:#6b6b8a; font-size:0.8rem;">${t.sample_values.map(v => typeof v === 'string' ? v : JSON.stringify(v)).join(', ')}</td>
-        </tr>`;
-      }
-      html += `</table></div>`;
-
-      reportDiv.innerHTML = html;
-
-      // Apply section
-      if (nullKeys.length > 0 || outKeys.length > 0 || r.duplicates.total_duplicate_rows > 0) {
-        let applyHtml = `<div class="card" style="margin-top:1.5rem;"><h3 style="color:#22c55e;">⚡ Aplicar correcciones</h3>`;
-        applyHtml += `<div style="margin-top:1rem;">`;
-
-        if (nullKeys.length > 0) {
-          applyHtml += `<p style="color:#94a3b8; margin-bottom:0.5rem;">Corregir nulos:</p>`;
-          for (const col of nullKeys) {
-            const fix = r.nulls[col].suggested_fix.includes('median') ? 'median'
-                      : r.nulls[col].suggested_fix.includes('mode') ? 'mode' : 'drop';
-            applyHtml += `<label style="display:block; margin-bottom:0.3rem; font-size:0.9rem;">
-              <input type="checkbox" class="fix-null" data-col="${col}" data-strategy="${fix}" checked />
-              <span style="color:#e2e2f0;">${col}</span>
-              <span style="color:#6b6b8a;"> → ${fix}</span>
-            </label>`;
-          }
-        }
-
-        if (outKeys.length > 0) {
-          applyHtml += `<p style="color:#94a3b8; margin-top:1rem; margin-bottom:0.5rem;">Remover outliers:</p>`;
-          for (const col of outKeys) {
-            applyHtml += `<label style="display:block; margin-bottom:0.3rem; font-size:0.9rem;">
-              <input type="checkbox" class="fix-outlier" data-col="${col}" checked />
-              <span style="color:#e2e2f0;">${col}</span>
-            </label>`;
-          }
-        }
-
-        if (r.duplicates.total_duplicate_rows > 0) {
-          applyHtml += `<label style="display:block; margin-top:1rem; font-size:0.9rem;">
-            <input type="checkbox" id="fix-duplicates" checked />
-            <span style="color:#e2e2f0;">Remover duplicados</span>
-          </label>`;
-        }
-
-        applyHtml += `<button id="apply-btn" class="btn btn-primary" style="margin-top:1.5rem;">Aplicar correcciones</button>`;
-        applyHtml += `<div id="apply-result" style="margin-top:1rem;"></div>`;
-        applyHtml += `</div></div>`;
-
-        applySection.innerHTML = applyHtml;
-        applySection.style.display = 'block';
-
-        document.getElementById('apply-btn').addEventListener('click', () => applyFixes(filename));
-      }
-    } catch (err) {
-      loading.style.display = 'none';
-      reportDiv.style.display = 'block';
-      reportDiv.innerHTML = `<div class="card" style="border-color:#ef4444; text-align:center;"><p style="color:#ef4444;">Error de conexión con la API</p></div>`;
+      report = data.report;
+      state = 'report';
+      render();
+    } catch {
+      state = 'error';
+      report = 'Error de conexión con la API';
+      render();
     }
   }
 
-  async function applyFixes(filename) {
+  async function applyFixes() {
     const fixes = { fill_nulls: {}, remove_outliers: [] };
     let removeDuplicates = false;
 
@@ -209,11 +84,10 @@ import Layout from '../layouts/Layout.astro';
     if (document.getElementById('fix-duplicates')?.checked) {
       removeDuplicates = true;
     }
-
     if (removeDuplicates) fixes.remove_duplicates = true;
 
-    const resultDiv = document.getElementById('apply-result');
-    resultDiv.innerHTML = '<p style="color:#a78bfa;">Aplicando correcciones...</p>';
+    state = 'applying';
+    render();
 
     try {
       const res = await fetch(`${API}/api/clean/apply`, {
@@ -222,27 +96,314 @@ import Layout from '../layouts/Layout.astro';
         body: JSON.stringify({ filename, fixes }),
       });
       const data = await res.json();
-      const cr = data.cleaning_result;
-
       if (!res.ok) {
-        resultDiv.innerHTML = `<p style="color:#ef4444;">${data.detail || 'Error'}</p>`;
+        state = 'error';
+        report = data.detail;
+        render();
         return;
       }
-
-      resultDiv.innerHTML = `
-        <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:1rem; margin-top:1rem;">
-          <p style="color:#22c55e; font-weight:600;">✅ Dataset limpiado</p>
-          <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.5rem;">
-            Filas: ${cr.original_shape[0]} → ${cr.new_shape[0]} (${cr.rows_removed} eliminadas)
-          </p>
-          <ul style="color:#6b6b8a; font-size:0.85rem; margin-top:0.5rem; padding-left:1.2rem;">
-            ${cr.applied_fixes.map(f => `<li>${f}</li>`).join('')}
-          </ul>
-          <a href="${API}${data.download_url}" class="btn btn-outline" style="margin-top:1rem; display:inline-block;" download>Descargar CSV limpio</a>
-        </div>
-      `;
-    } catch (err) {
-      resultDiv.innerHTML = `<p style="color:#ef4444;">Error de conexión con la API</p>`;
+      cleaningResult = data.cleaning_result;
+      state = 'done';
+      render();
+      document.getElementById('done-result')?.scrollIntoView({ behavior: 'smooth' });
+    } catch {
+      state = 'error';
+      report = 'Error de conexión';
+      render();
     }
   }
+
+  function severity(num, type) {
+    if (type === 'nulls') {
+      if (num === 0) return { label: 'Sin nulos', badge: 'badge-green', icon: '✅' };
+      if (num <= 5) return { label: 'Pocos', badge: 'badge-yellow', icon: '⚠️' };
+      return { label: 'Muchos', badge: 'badge-red', icon: '🔴' };
+    }
+    if (type === 'outliers') {
+      if (num === 0) return { label: 'Sin outliers', badge: 'badge-green', icon: '✅' };
+      if (num <= 5) return { label: 'Algunos', badge: 'badge-yellow', icon: '⚠️' };
+      return { label: 'Varios', badge: 'badge-red', icon: '🔴' };
+    }
+    if (type === 'dupes') {
+      if (num === 0) return { label: 'Sin duplicados', badge: 'badge-green', icon: '✅' };
+      return { label: `${num} filas`, badge: 'badge-yellow', icon: '⚠️' };
+    }
+  }
+
+  function render() {
+    if (state === 'loading') {
+      app.innerHTML = `<div class="text-center" style="padding:2rem;"><div class="spinner"></div><p class="text-secondary mt-1">Cargando...</p></div>`;
+      return;
+    }
+
+    if (state === 'no-data') {
+      app.innerHTML = `
+        <div class="card text-center" style="padding:2.5rem;">
+          <p style="font-size:3rem; margin-bottom:0.5rem;">📭</p>
+          <h3 style="margin-bottom:0.5rem;">No hay datasets</h3>
+          <p class="text-secondary" style="margin-bottom:1.5rem;">Subí un CSV primero para poder limpiarlo.</p>
+          <a href="/datlas/subir" class="btn btn-primary">📁 Subir dataset</a>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `
+      <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <select id="ds-select" style="flex:1; min-width:150px;">
+          ${datasets.map(d => `<option value="${d.filename}" ${d.filename === filename ? 'selected' : ''}>${d.filename}</option>`).join('')}
+        </select>
+        <button id="analyze-btn" class="btn btn-primary">${state === 'analyzing' ? 'Analizando...' : '🔍 Analizar'}</button>
+      </div>
+    `;
+
+    if (state === 'analyzing') {
+      html += `<div class="text-center" style="padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Analizando ${filename}...</p></div>`;
+      app.innerHTML = html;
+      bindEvents();
+      return;
+    }
+
+    if (state === 'report' && report) {
+      const r = report;
+      const nullKeys = Object.keys(r.nulls);
+      const outKeys = Object.keys(r.outliers);
+      const hasDupes = r.duplicates.total_duplicate_rows > 0;
+      const totalIssues = nullKeys.length + outKeys.length + (hasDupes ? 1 : 0);
+
+      html += `
+        <div class="card mb-2">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h3 style="margin:0;">📊 ${filename}</h3>
+              <p class="text-secondary" style="font-size:0.82rem;">${r.original_shape.rows} filas × ${r.original_shape.columns} columnas</p>
+            </div>
+            <span class="badge ${totalIssues > 0 ? 'badge-yellow' : 'badge-green'}">
+              ${totalIssues > 0 ? `${totalIssues} problema${totalIssues > 1 ? 's' : ''}` : 'Sin problemas'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      html += `<div class="card mb-2"><h3>📊 Valores nulos</h3>`;
+      if (nullKeys.length === 0) {
+        html += `<p class="text-green mt-1" style="font-size:0.9rem;">✅ Listo, no hay valores nulos en ninguna columna.</p>`;
+      } else {
+        html += `<div style="overflow-x:auto; margin-top:0.5rem;"><table>
+          <tr><th>Columna</th><th style="text-align:right;">Nulos</th><th style="text-align:right;">%</th><th>Sugerencia</th></tr>`;
+        for (const col of nullKeys) {
+          html += `<tr>
+            <td style="font-weight:500;">${col}</td>
+            <td style="text-align:right;">${r.nulls[col].null_count}</td>
+            <td style="text-align:right;">${r.nulls[col].null_percent}%</td>
+            <td><span class="badge badge-blue">${r.nulls[col].suggested_fix}</span></td>
+          </tr>`;
+        }
+        html += `</table></div>`;
+      }
+      html += `</div>`;
+
+      html += `<div class="card mb-2"><h3>📈 Outliers</h3>`;
+      if (outKeys.length === 0) {
+        html += `<p class="text-green mt-1" style="font-size:0.9rem;">✅ No se detectaron valores atípicos.</p>`;
+      } else {
+        html += `<div style="overflow-x:auto; margin-top:0.5rem;"><table>
+          <tr><th>Columna</th><th style="text-align:right;">Outliers</th><th style="text-align:right;">%</th><th>Rango normal</th></tr>`;
+        for (const col of outKeys) {
+          html += `<tr>
+            <td style="font-weight:500;">${col}</td>
+            <td style="text-align:right; color:var(--red);">${r.outliers[col].outlier_count}</td>
+            <td style="text-align:right;">${r.outliers[col].outlier_percent}%</td>
+            <td style="font-size:0.78rem; color:var(--text-secondary);">[${r.outliers[col].lower_bound}, ${r.outliers[col].upper_bound}]</td>
+          </tr>`;
+        }
+        html += `</table></div>`;
+      }
+      html += `</div>`;
+
+      html += `<div class="card mb-2"><h3>🔁 Duplicados</h3>`;
+      if (!hasDupes) {
+        html += `<p class="text-green mt-1" style="font-size:0.9rem;">✅ Sin filas duplicadas.</p>`;
+      } else {
+        html += `<p style="margin-top:0.5rem;">${r.duplicates.total_duplicate_rows} filas duplicadas <span class="badge badge-yellow">${r.duplicates.duplicate_percent}% del total</span></p>`;
+      }
+      html += `</div>`;
+
+      const hasIssues = nullKeys.length > 0 || outKeys.length > 0 || hasDupes;
+      if (hasIssues) {
+        html += `<div class="card" style="border-color:rgba(34,197,94,0.3);">
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.8rem;">
+            <span style="font-size:1.3rem;">⚡</span>
+            <h3 style="margin:0; color:var(--green);">Corregir ahora</h3>
+          </div>
+          <p class="text-secondary" style="font-size:0.82rem; margin-bottom:1rem;">Seleccioná qué correcciones aplicar y hace click en "Aplicar".</p>`;
+
+        if (nullKeys.length > 0) {
+          html += `<p class="text-secondary mb-1" style="font-size:0.82rem; font-weight:600;">📊 Nulos</p>`;
+          for (const col of nullKeys) {
+            const fix = r.nulls[col].suggested_fix.includes('median') ? 'median'
+                      : r.nulls[col].suggested_fix.includes('mode') ? 'mode' : 'drop';
+            html += `<label class="fix-option">
+              <input type="checkbox" class="fix-null" data-col="${col}" data-strategy="${fix}" checked />
+              <span>${col}</span>
+              <span class="fix-strategy">→ ${fix}</span>
+            </label>`;
+          }
+        }
+
+        if (outKeys.length > 0) {
+          html += `<p class="text-secondary mb-1 mt-1" style="font-size:0.82rem; font-weight:600;">📈 Outliers</p>`;
+          for (const col of outKeys) {
+            html += `<label class="fix-option">
+              <input type="checkbox" class="fix-outlier" data-col="${col}" checked />
+              <span>${col}</span>
+            </label>`;
+          }
+        }
+
+        if (hasDupes) {
+          html += `<p class="text-secondary mb-1 mt-1" style="font-size:0.82rem; font-weight:600;">🔁 Duplicados</p>
+            <label class="fix-option">
+              <input type="checkbox" id="fix-duplicates" checked />
+              <span>Remover ${r.duplicates.total_duplicate_rows} filas duplicadas</span>
+            </label>`;
+        }
+
+        html += `<button id="apply-btn" class="btn btn-success mt-1" style="width:100%; justify-content:center;">⚡ Aplicar correcciones</button>`;
+        html += `</div>`;
+      } else {
+        html += `<div class="card text-center" style="border-color:rgba(34,197,94,0.3);">
+          <p style="font-size:2rem; margin-bottom:0.3rem;">✨</p>
+          <p class="text-green" style="font-weight:600;">Dataset impecable</p>
+          <p class="text-secondary" style="font-size:0.85rem;">No necesita correcciones. Pasá a explorarlo.</p>
+          <a href="/datlas/explorar?file=${filename}" class="btn btn-outline mt-1">🔍 Explorar</a>
+        </div>`;
+      }
+
+      app.innerHTML = html;
+      bindEvents();
+    }
+
+    if (state === 'applying') {
+      html += `<div class="text-center" style="padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Aplicando correcciones...</p></div>`;
+      app.innerHTML = html;
+    }
+
+    if (state === 'done' && cleaningResult) {
+      const cr = cleaningResult;
+      html += `
+        <div id="done-result" class="card mt-1" style="border-color:rgba(34,197,94,0.4);">
+          <div class="text-center" style="padding:0.5rem 0;">
+            <p style="font-size:2.5rem; margin-bottom:0.3rem;">✅</p>
+            <h3 style="color:var(--green); font-size:1.2rem; margin-bottom:1rem;">¡Dataset limpiado!</h3>
+            <div class="stats-row">
+              <div class="stat">
+                <span class="stat-value" style="color:var(--text-secondary);">${cr.original_shape[0]}</span>
+                <span class="stat-label">Filas antes</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" style="color:var(--green);">${cr.new_shape[0]}</span>
+                <span class="stat-label">Filas después</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" style="color:var(--red);">-${cr.rows_removed}</span>
+                <span class="stat-label">Eliminadas</span>
+              </div>
+            </div>
+            <div class="fixes-list">
+              <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; font-weight:600;">Correcciones aplicadas:</p>
+              ${cr.applied_fixes.map(f => `<span class="fix-tag">${f}</span>`).join('')}
+            </div>
+            <div class="btn-group" style="justify-content:center; margin-top:1.2rem;">
+              <a href="/api/download/clean_${filename}" class="btn btn-success" download>⬇ Descargar CSV</a>
+              <a href="/datlas/explorar?file=clean_${filename}" class="btn btn-primary">🔍 Explorar resultado</a>
+              <button class="btn btn-outline btn-sm" onclick="window.location='/datlas/limpiar?file=${filename}'">Volver</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      app.innerHTML = html;
+      bindEvents();
+    }
+
+    if (state === 'error') {
+      html += `<div class="card mt-1" style="border-color:var(--red); text-align:center;">
+        <p style="color:var(--red); font-weight:600;">❌ Error</p>
+        <p class="text-secondary" style="font-size:0.85rem;">${report}</p>
+      </div>`;
+      app.innerHTML = html;
+      bindEvents();
+    }
+
+    if (state === 'ready') {
+      html += `<div class="card text-center" style="padding:2rem;">
+        <p style="font-size:1.5rem; margin-bottom:0.3rem;">🔍</p>
+        <p class="text-secondary">Seleccionaste <strong>${filename}</strong>. Hacé click en "Analizar" para ver qué necesita.</p>
+      </div>`;
+      app.innerHTML = html;
+      bindEvents();
+    }
+  }
+
+  function bindEvents() {
+    document.getElementById('analyze-btn')?.addEventListener('click', runAnalyze);
+    document.getElementById('ds-select')?.addEventListener('change', (e) => {
+      filename = e.target.value;
+      state = 'ready';
+      render();
+    });
+    document.getElementById('apply-btn')?.addEventListener('click', applyFixes);
+  }
+
+  init();
 </script>
+
+<style>
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--accent); display: block; }
+  .stat-label { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+  .fixes-list { margin: 0.5rem 0; }
+  .fix-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    margin: 0.15rem;
+    background: var(--green-bg);
+    color: var(--green);
+    border-radius: 20px;
+    font-size: 0.72rem;
+  }
+
+  .fix-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .fix-option:hover { background: var(--accent-bg); }
+  .fix-option input { accent-color: var(--green); }
+  .fix-strategy { color: var(--text-muted); font-size: 0.78rem; }
+</style>

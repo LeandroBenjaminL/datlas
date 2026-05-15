@@ -3,65 +3,528 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Explorar datos">
-  <section class="hero" style="padding:2rem 1rem;">
-    <h1 style="font-size:2.5rem;">🔍 Exploración</h1>
-    <p>
-      Metele un vistazo profundo a tus datos. Distribuciones, correlaciones,
-      estadísticas y gráficos generados automáticamente.
-    </p>
-  </section>
-
-  <div class="grid-3">
-    <div class="card">
-      <h3>Perfil automático</h3>
-      <p>
-        Resumen completo: tipos, nulos, unique values, min, max,
-        media, mediana, desvío estándar.
-      </p>
-    </div>
-    <div class="card">
-      <h3>Distribuciones</h3>
-      <p>
-        Histogramas y boxplots para cada columna numérica.
-        Identificá sesgos y patrones de un vistazo.
-      </p>
-    </div>
-    <div class="card">
-      <h3>Correlaciones</h3>
-      <p>
-        Matriz de correlación interactiva. Detectá relaciones
-        lineales y no lineales entre variables.
-      </p>
-    </div>
-    <div class="card">
-      <h3>Estadísticas</h3>
-      <p>
-        Tests de normalidad, análisis de varianza, chi-cuadrado.
-        Todo el poder de SciPy sin escribir código.
-      </p>
-    </div>
-    <div class="card">
-      <h3>Gráficos</h3>
-      <p>
-        Scatter plots, heatmaps, pairplots, gráficos de barras y líneas.
-        Visualizaciones listas para descargar.
-      </p>
-    </div>
-    <div class="card">
-      <h3>Exportar</h3>
-      <p>
-        Descargá el perfil en PDF, HTML o Markdown.
-        Compartí resultados con tu equipo.
-      </p>
-    </div>
+  <div class="page-title">
+    <h1>🔍 Explorar</h1>
+    <p>Seleccioná un dataset y Datlas te muestra todo su perfil: estadísticas, distribuciones, correlaciones.</p>
   </div>
 
-  <div style="text-align:center; margin-top:2rem;">
-    <div style="display:inline-block; padding:1.5rem; background:rgba(167,139,250,0.08); border-radius:8px; border:1px solid rgba(167,139,250,0.2);">
-      <p style="color:#c4b5fd; font-weight:600;">⚡ Backend en desarrollo</p>
-      <p style="color:#6b6b8a; font-size:0.9rem; margin-top:0.5rem;">
-        La funcionalidad de exploración está siendo implementada en el backend (FastAPI + Pandas).
-      </p>
-    </div>
+  <div id="app" style="max-width:860px; margin:0 auto;">
+    <p style="text-align:center; color:var(--text-secondary); padding:2rem;">
+      <span class="spinner"></span>
+      <span style="display:block; margin-top:0.8rem;">Cargando...</span>
+    </p>
   </div>
 </Layout>
+
+<script is:inline>
+(function() {
+  const API = 'http://localhost:8000';
+  const el = document.getElementById('app');
+  const params = new URLSearchParams(window.location.search);
+  const fileFromUrl = params.get('file');
+  let datasets = [];
+  let selectedFile = '';
+  let report = null;
+  let activeTab = 'resumen';
+
+  function $(id) { return document.getElementById(id); }
+
+  function show(html) { el.innerHTML = html; }
+
+  function showError(msg) {
+    show(`<div class="card" style="border-color:var(--red); text-align:center; padding:2rem;">
+      <p style="font-size:2rem; margin-bottom:0.5rem;">⚠️</p>
+      <p style="color:var(--red); font-weight:600; margin-bottom:0.3rem;">Error</p>
+      <p class="text-secondary">${msg}</p>
+      <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+    </div>`);
+  }
+
+  function renderSelector() {
+    return `
+      <div class="card" style="padding:1.2rem; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+          <span style="font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Dataset:</span>
+          <select id="ds-select" style="flex:1; min-width:160px;">
+            ${datasets.map(d => `<option value="${d.filename}" ${d.filename === selectedFile ? 'selected' : ''}>${d.filename} (${d.size_kb} KB)</option>`).join('')}
+          </select>
+          <button id="go-btn" class="btn btn-primary">🔍 Explorar</button>
+          <a href="/datlas/subir" class="btn btn-outline btn-sm">+ Subir</a>
+        </div>
+      </div>`;
+  }
+
+  function renderTabs() {
+    const tabs = [
+      { id: 'resumen', label: '📊 Resumen' },
+      { id: 'preview', label: '👀 Vista previa' },
+      { id: 'nulos', label: '⚠️ Nulos' },
+      { id: 'numerico', label: '📈 Numérico' },
+      { id: 'categorias', label: '🏷️ Categorías' },
+      { id: 'corr', label: '🔗 Correlaciones' },
+    ];
+    return `<div class="tabs">
+      ${tabs.map(t => `<button class="tab-btn ${activeTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+    </div>
+    <div id="tab-content"></div>`;
+  }
+
+  function renderReport() {
+    if (!report) return;
+    const r = report;
+
+    let html = renderSelector();
+    html += renderTabs();
+    show(html);
+    renderTabContent(r);
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTab = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTabContent(r);
+      });
+    });
+    document.getElementById('go-btn')?.addEventListener('click', () => {
+      selectedFile = document.getElementById('ds-select').value;
+      activeTab = 'resumen';
+      show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Analizando ${selectedFile}...</p></div>`);
+      doExplore();
+    });
+    document.getElementById('ds-select')?.addEventListener('change', (e) => {
+      selectedFile = e.target.value;
+    });
+    setTimeout(renderCharts, 300);
+  }
+
+  function renderTabContent(r) {
+    const tc = document.getElementById('tab-content');
+    if (!tc) return;
+
+    switch (activeTab) {
+      case 'resumen': tc.innerHTML = renderResumen(r); break;
+      case 'preview': tc.innerHTML = renderPreview(r); break;
+      case 'nulos': tc.innerHTML = renderNulos(r); break;
+      case 'numerico': tc.innerHTML = renderNumerico(r); break;
+      case 'categorias': tc.innerHTML = renderCategorias(r); break;
+      case 'corr': tc.innerHTML = renderCorrelaciones(r); break;
+    }
+  }
+
+  function renderResumen(r) {
+    const p = r.profile;
+    const ns = r.null_summary;
+    const nullColor = ns.total_nulls > 0 ? 'var(--yellow)' : 'var(--green)';
+    const pctColor = ns.overall_pct > 1 ? 'var(--red)' : ns.overall_pct > 0 ? 'var(--yellow)' : 'var(--green)';
+    const corr = r.correlations || {};
+    const dist = r.distributions || {};
+
+    let html = `
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:0.6rem; margin-bottom:1.5rem;">
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${p.shape.rows.toLocaleString()}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">FILAS</p>
+        </div>
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${p.shape.columns}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">COLUMNAS</p>
+        </div>
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:${nullColor};">${ns.total_nulls}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">VALORES VACÍOS</p>
+        </div>
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:${pctColor};">${100 - ns.overall_pct}%</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">COMPLETITUD</p>
+        </div>
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${Object.keys(p.columns).length}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">NUMÉRICAS</p>
+        </div>
+        <div class="card text-center" style="padding:1rem;">
+          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${Object.keys(dist).length}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">DISTRIBUCIONES</p>
+        </div>
+      </div>`;
+
+    const numCols = Object.entries(p.columns).filter(([_, info]) => info.type !== 'object').length;
+    const catCols = Object.entries(p.columns).filter(([_, info]) => info.type === 'object').length;
+
+    html += `
+      <div class="card mb-2">
+        <h3 style="margin-bottom:0.8rem;">📋 Composición del dataset</h3>
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+          <div><span class="badge badge-blue">${numCols} numéricas</span></div>
+          <div><span class="badge badge-yellow">${catCols} categóricas</span></div>
+          <div><span class="badge ${ns.total_nulls > 0 ? 'badge-yellow' : 'badge-green'}">${ns.total_nulls > 0 ? ns.total_nulls + ' nulos' : 'Sin nulos'}</span></div>
+          <div><span class="badge ${corr.pairs && corr.pairs.length > 0 ? 'badge-blue' : 'badge-green'}">${corr.pairs ? corr.pairs.length + ' correlaciones' : 'Sin correlaciones'}</span></div>
+        </div>
+      </div>`;
+
+    const stats = r.statistics || {};
+    const statCols = Object.keys(stats);
+    if (statCols.length > 0) {
+      html += `<div class="card mb-2"><h3>📐 Forma de la distribución</h3>
+        <div style="overflow-x:auto; margin-top:0.5rem;"><table>
+          <tr><th>Columna</th><th style="text-align:right;">Sesgo</th><th></th><th style="text-align:right;">Curtosis</th><th></th></tr>`;
+      for (const col of statCols) {
+        const s = stats[col];
+        const skewLabel = Math.abs(s.skewness) < 0.5 ? 'Simétrica' : s.skewness > 0 ? 'Sesgo +' : 'Sesgo −';
+        const kurtLabel = Math.abs(s.kurtosis) < 1 ? 'Normal' : s.kurtosis > 0 ? 'Picuda' : 'Plana';
+        html += `<tr>
+          <td style="font-weight:500;">${col}</td>
+          <td style="text-align:right;">${s.skewness}</td>
+          <td style="font-size:0.7rem; color:var(--text-secondary);">${skewLabel}</td>
+          <td style="text-align:right;">${s.kurtosis}</td>
+          <td style="font-size:0.7rem; color:var(--text-secondary);">${kurtLabel}</td>
+        </tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+
+    return html;
+  }
+
+  function renderPreview(r) {
+    if (!r.preview || r.preview.length === 0) {
+      return `<div class="card text-center"><p class="text-secondary">Sin datos de previsualización.</p></div>`;
+    }
+    const cols = Object.keys(r.preview[0]);
+    let html = `<div class="card"><h3>👀 Vista previa</h3>
+      <p class="text-secondary" style="font-size:0.8rem; margin-bottom:0.8rem;">Primeras ${r.preview.length} filas del dataset</p>
+      <div style="overflow-x:auto;"><table>
+        <tr>${cols.map(c => `<th style="white-space:nowrap; font-size:0.68rem;">${c}</th>`).join('')}</tr>`;
+    for (const row of r.preview) {
+      html += `<tr>${cols.map(c => {
+        const val = row[c] ?? '';
+        return `<td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.78rem;">${val}</td>`;
+      }).join('')}</tr>`;
+    }
+    html += `</table></div></div>`;
+    return html;
+  }
+
+  function renderNulos(r) {
+    const ns = r.null_summary;
+    const nullCols = Object.entries(ns.columns);
+    if (nullCols.length === 0) {
+      return `<div class="card text-center" style="padding:2rem;">
+        <p style="font-size:2.5rem; margin-bottom:0.5rem;">✨</p>
+        <p class="text-green" style="font-weight:600;">No hay valores faltantes</p>
+        <p class="text-secondary" style="font-size:0.85rem;">Todas las columnas están completas.</p>
+      </div>`;
+    }
+    let html = `<div class="card"><h3>⚠️ Valores faltantes</h3>
+      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:1rem;">${ns.total_nulls} valores nulos en total (${ns.overall_pct}% del dataset)</p>`;
+    for (const [col, info] of nullCols) {
+      const p = Math.min(info.pct, 100);
+      const barColor = p > 20 ? 'var(--red)' : p > 5 ? 'var(--yellow)' : 'var(--green)';
+      html += `<div style="margin-bottom:0.6rem;">
+        <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.2rem;">
+          <span style="font-weight:500;">${col}</span>
+          <span class="${p > 20 ? 'text-red' : 'text-secondary'}" style="font-size:0.78rem;">${info.count} filas (${info.pct}%)</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${p}%; background:${barColor};"></div></div>
+      </div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function renderNumerico(r) {
+    const p = r.profile;
+    const numCols = Object.entries(p.columns).filter(([_, info]) => info.type !== 'object');
+    if (numCols.length === 0) {
+      return `<div class="card text-center"><p class="text-secondary">No hay columnas numéricas en este dataset.</p></div>`;
+    }
+    let html = `<div class="card"><h3>📈 Perfil numérico</h3>
+      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Media, mediana, desvío, mínimo y máximo por columna</p>
+      <div style="overflow-x:auto;"><table>
+        <tr><th>Columna</th><th>Tipo</th><th style="text-align:right;">∅</th><th style="text-align:right;">Únicos</th><th style="text-align:right;">Media</th><th style="text-align:right;">Mediana</th><th style="text-align:right;">Std</th><th style="text-align:right;">Mín</th><th style="text-align:right;">Máx</th></tr>`;
+    for (const [col, info] of numCols) {
+      html += `<tr>
+        <td style="font-weight:600;">${col}</td>
+        <td style="color:var(--accent); font-size:0.72rem;">${info.type}</td>
+        <td style="text-align:right;">${info.nulls || 0}</td>
+        <td style="text-align:right;">${info.unique ?? '—'}</td>
+        <td style="text-align:right;">${info.mean !== undefined ? info.mean : '—'}</td>
+        <td style="text-align:right;">${info.median !== undefined ? info.median : '—'}</td>
+        <td style="text-align:right;">${info.std !== undefined ? info.std : '—'}</td>
+        <td style="text-align:right;">${info.min !== undefined ? info.min : '—'}</td>
+        <td style="text-align:right;">${info.max !== undefined ? info.max : '—'}</td>
+      </tr>`;
+    }
+    html += `</table></div></div>`;
+
+    const dist = r.distributions || {};
+    const distCols = Object.keys(dist);
+    if (distCols.length > 0) {
+      html += `<div class="card mt-1">
+        <h3>📊 Distribuciones</h3>
+        <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Histogramas de las columnas numéricas</p>
+        <div id="chart-area" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1rem;"></div>
+      </div>`;
+    }
+    return html;
+  }
+
+  function renderCategorias(r) {
+    const cat = r.categorical_breakdown || {};
+    const catCols = Object.keys(cat);
+    if (catCols.length === 0) {
+      return `<div class="card text-center"><p class="text-secondary">No hay columnas categóricas en este dataset.</p></div>`;
+    }
+    let html = `<div class="card"><h3>🏷️ Columnas de texto</h3>
+      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:1rem;">Distribución de valores por categoría</p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:1rem;">`;
+    for (const col of catCols) {
+      const items = cat[col];
+      const maxCount = items[0]?.count || 1;
+      html += `<div>
+        <h4 style="color:var(--text-secondary); font-size:0.78rem; margin-bottom:0.4rem; font-weight:600;">${col}</h4>`;
+      for (const item of items) {
+        html += `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+          <span style="font-size:0.73rem; width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.value}</span>
+          <div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${(item.count / maxCount) * 100}%; background:var(--accent);"></div></div>
+          <span style="font-size:0.68rem; color:var(--text-muted); width:42px; text-align:right;">${item.pct}%</span>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div></div>`;
+    return html;
+  }
+
+  function renderCorrelaciones(r) {
+    const corr = r.correlations || {};
+    if (!corr.pairs || corr.pairs.length === 0) {
+      return `<div class="card text-center" style="padding:2rem;">
+        <p style="font-size:2.5rem; margin-bottom:0.5rem;">🔗</p>
+        <p class="text-secondary">No hay suficientes columnas numéricas para calcular correlaciones.</p>
+      </div>`;
+    }
+    const corrCols = Object.keys(corr.matrix);
+    let html = `<div class="card mb-1"><h3>🔗 Matriz de correlaciones</h3>
+      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Rojo = correlación negativa, Verde = correlación positiva</p>`;
+
+    if (corrCols.length > 1) {
+      html += `<div style="overflow-x:auto; margin-bottom:1rem;">
+        <table style="font-size:0.68rem; margin:0 auto;">
+          <tr><td style="padding:0.1rem;"></td>`;
+      for (const c of corrCols) {
+        html += `<th style="padding:0.1rem; writing-mode:vertical-lr; font-weight:600; color:var(--text-secondary); height:38px;">${c}</th>`;
+      }
+      html += `</tr>`;
+      for (const c1 of corrCols) {
+        html += `<tr><td style="padding:0.1rem; font-weight:600; color:var(--text-secondary); font-size:0.65rem;">${c1}</td>`;
+        for (const c2 of corrCols) {
+          const val = corr.matrix[c1][c2];
+          const bg = val >= 0
+            ? `rgba(34,197,94,${Math.abs(val) * 0.55 + 0.1})`
+            : `rgba(239,68,68,${Math.abs(val) * 0.55 + 0.1})`;
+          html += `<td style="padding:0.1rem; text-align:center; background:${bg}; border-radius:3px; min-width:32px; font-weight:${Math.abs(val) > 0.7 ? '700' : '400'};">${val.toFixed(2)}</td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</table></div>`;
+    }
+
+    html += `<h4 style="color:var(--text-secondary); font-size:0.82rem; margin-bottom:0.5rem;">Pares más correlacionados</h4>
+      <table>
+        <tr><th>X</th><th>Y</th><th style="text-align:right;">Valor</th><th>Relación</th></tr>`;
+    for (const p of corr.pairs.slice(0, 5)) {
+      const color = p.correlation >= 0 ? 'var(--green)' : 'var(--red)';
+      const label = p.correlation >= 0.7 ? 'Fuerte +' : p.correlation <= -0.7 ? 'Fuerte −' : p.correlation >= 0.4 ? 'Moderada +' : p.correlation <= -0.4 ? 'Moderada −' : 'Débil';
+      html += `<tr>
+        <td>${p.x}</td>
+        <td>${p.y}</td>
+        <td style="text-align:right; color:${color}; font-weight:600;">${p.correlation.toFixed(3)}</td>
+        <td style="font-size:0.78rem;">${label}</td>
+      </tr>`;
+    }
+    html += `</table></div>`;
+
+    const stats = r.statistics || {};
+    const sCols = Object.keys(stats);
+    if (sCols.length > 0) {
+      html += `<div class="card mt-1"><h3>📐 Forma de la distribución</h3>
+        <div style="overflow-x:auto; margin-top:0.5rem;"><table>
+          <tr><th>Columna</th><th style="text-align:right;">Sesgo</th><th></th><th style="text-align:right;">Curtosis</th><th></th></tr>`;
+      for (const col of sCols) {
+        const s = stats[col];
+        const skewLabel = Math.abs(s.skewness) < 0.5 ? 'Simétrica' : s.skewness > 0 ? 'Sesgo +' : 'Sesgo −';
+        const kurtLabel = Math.abs(s.kurtosis) < 1 ? 'Normal' : s.kurtosis > 0 ? 'Picuda' : 'Plana';
+        html += `<tr>
+          <td style="font-weight:500;">${col}</td>
+          <td style="text-align:right;">${s.skewness}</td>
+          <td style="font-size:0.7rem; color:var(--text-secondary);">${skewLabel}</td>
+          <td style="text-align:right;">${s.kurtosis}</td>
+          <td style="font-size:0.7rem; color:var(--text-secondary);">${kurtLabel}</td>
+        </tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+
+    return html;
+  }
+
+  // ── Init ──
+  fetch(`${API}/api/datasets`)
+    .then(r => r.json())
+    .then(data => {
+      datasets = data.raw || [];
+      if (fileFromUrl && datasets.some(d => d.filename === fileFromUrl)) {
+        selectedFile = fileFromUrl;
+        show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Cargando ${selectedFile}...</p></div>`);
+        doExplore();
+      } else if (datasets.length > 0) {
+        selectedFile = datasets[0].filename;
+        let html = renderSelector();
+        html += `<div class="card text-center" style="padding:2rem;">
+          <p style="font-size:1.5rem; margin-bottom:0.3rem;">🔍</p>
+          <p class="text-secondary">Elegí un dataset y hace click en "Explorar".</p>
+        </div>`;
+        show(html);
+        document.getElementById('go-btn')?.addEventListener('click', () => {
+          selectedFile = document.getElementById('ds-select').value;
+          show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Analizando ${selectedFile}...</p></div>`);
+          doExplore();
+        });
+        document.getElementById('ds-select')?.addEventListener('change', (e) => {
+          selectedFile = e.target.value;
+        });
+      } else {
+        show(`<div class="card text-center" style="padding:2.5rem;">
+          <p style="font-size:3rem; margin-bottom:0.5rem;">📭</p>
+          <h3 style="margin-bottom:0.5rem;">No hay datasets cargados</h3>
+          <p class="text-secondary" style="margin-bottom:1.5rem;">Subí un CSV primero para poder explorarlo.</p>
+          <a href="/datlas/subir" class="btn btn-primary">📁 Subir dataset</a>
+        </div>`);
+      }
+    })
+    .catch(err => showError('No se pudo conectar con la API. ¿Docker está corriendo?'));
+
+  function doExplore() {
+    fetch(`${API}/api/explore/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: selectedFile }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.report) {
+          showError(data.detail || 'El servidor no devolvió un reporte válido.');
+          return;
+        }
+        report = data.report;
+        renderReport();
+      })
+      .catch(err => showError('Error de red. ¿Docker está corriendo en localhost:8000?'));
+  }
+
+  function renderCharts() {
+    const dist = report?.distributions;
+    if (!dist) return;
+    const container = document.getElementById('chart-area');
+    if (!container) return;
+    const cols = Object.keys(dist);
+    if (cols.length === 0) return;
+
+    if (!window.Chart) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = () => drawAll(container, dist, cols);
+      document.head.appendChild(s);
+    } else {
+      drawAll(container, dist, cols);
+    }
+  }
+
+  function drawAll(container, dist, cols) {
+    container.innerHTML = '';
+    for (const col of cols) {
+      const d = dist[col];
+      const id = `ct-${col.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<h4 style="color:var(--text-primary); margin-bottom:0.3rem; font-size:0.82rem; font-weight:600;">${col}</h4>
+        <div style="position:relative; height:160px;"><canvas id="${id}"></canvas></div>`;
+      const labels = d.edges.slice(0, -1).map((e, i) => `${d.edges[i].toFixed(1)}–${d.edges[i+1].toFixed(1)}`);
+      container.appendChild(wrap);
+      setTimeout(() => {
+        const ctx = document.getElementById(id)?.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: col, data: d.counts,
+              backgroundColor: 'rgba(167, 139, 250, 0.6)',
+              borderColor: 'rgba(167, 139, 250, 0.9)',
+              borderWidth: 1, borderRadius: 4,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#94a3b8', font: { size: 8 }, maxRotation: 45 }, grid: { color: '#1e1e3a' } },
+              y: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: '#1e1e3a' }, beginAtZero: true },
+            },
+          },
+        });
+      }, 10);
+    }
+  }
+})();
+</script>
+
+<style>
+  .spinner {
+    display: inline-block;
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabs {
+    display: flex;
+    gap: 0.15rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .tab-btn:hover { background: var(--bg-card); color: var(--accent-hover); }
+  .tab-btn.active { background: var(--bg-card); color: var(--accent-hover); border-color: var(--border-hover); }
+
+  .progress-bar {
+    background: var(--bg-primary);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s;
+  }
+</style>

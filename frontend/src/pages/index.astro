@@ -4,72 +4,134 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Inicio">
   <section class="hero">
-    <h1>Datlas</h1>
-    <p>
-      Cargá tu dataset, limpiá los datos, explorá patrones y exportá resultados.
-      Todo en un solo lugar. Sin instalar nada.
+    <h1>Cargá, limpiá, <span class="gradient">explorá</span>.</h1>
+    <p class="hero-sub">
+      Subí un CSV. Datlas lo analiza al toque. Sin instalarte nada, sin vueltas.
     </p>
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <a href="/datlas/subir" class="btn btn-primary">Empezar ahora</a>
-      <a href="https://github.com/LeandroBenjaminL/datlas" class="btn btn-outline">GitHub</a>
-    </div>
+    <a href="/datlas/subir" class="btn btn-primary btn-lg">
+      📁 Subir tu primer dataset
+    </a>
   </section>
 
-  <section>
-    <h2 style="text-align:center; color:#94a3b8; font-size:1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:2rem;">Tres perfiles, una herramienta</h2>
-
-    <div class="grid-3">
-      <!-- Perfil A: Limpieza -->
-      <div class="card">
-        <span class="badge">Perfil A</span>
-        <h3>🧹 Limpieza</h3>
-        <p>
-          Detecta nulos, outliers, duplicados y tipos incorrectos automáticamente.
-          Normalizá tus datos en segundos.
-        </p>
-        <p style="margin-top:1rem;">
-          <a href="/datlas/limpiar" style="color:#a78bfa; text-decoration:none; font-weight:600;">Limpiar dataset →</a>
-        </p>
-      </div>
-
-      <!-- Perfil B: Exploración -->
-      <div class="card">
-        <span class="badge">Perfil B</span>
-        <h3>🔍 Exploración</h3>
-        <p>
-          Perfil automático: distribuciones, correlaciones, estadísticas.
-          Entendé tus datos antes de usarlos.
-        </p>
-        <p style="margin-top:1rem;">
-          <a href="/datlas/explorar" style="color:#a78bfa; text-decoration:none; font-weight:600;">Explorar dataset →</a>
-        </p>
-      </div>
-
-      <!-- Perfil C: Pipeline -->
-      <div class="card">
-        <span class="badge">Perfil C</span>
-        <h3>⚡ Pipeline</h3>
-        <p>
-          Del dataset crudo al resultado en un flujo automatizado.
-          Exportá a CSV, Excel, Parquet o directo a PostgreSQL.
-        </p>
-        <p style="margin-top:1rem; color:#4a4a6a;">
-          <em>Próximamente</em>
-        </p>
+  <div class="steps-flow">
+    <div class="flow-step">
+      <div class="flow-icon">📁</div>
+      <div class="flow-body">
+        <h3>Subí tu CSV</h3>
+        <p>Arrastrá el archivo o seleccionálo. Datlas lo recibe, lo analiza y te muestra qué tiene adentro.</p>
       </div>
     </div>
-  </section>
-
-  <section style="margin-top:4rem; text-align:center;">
-    <h2 style="color:#c4b5fd; margin-bottom:1rem;">Stack profesional</h2>
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; color:#6b6b8a; font-size:0.9rem;">
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Python 3.12</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">FastAPI</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Pandas</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">PostgreSQL</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Docker</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">AWS Lambda</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Astro</span>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <div class="flow-icon">🧹</div>
+      <div class="flow-body">
+        <h3>Limpialo</h3>
+        <p>Detecta automáticamente nulos, outliers y duplicados. Corregí todo con un click y descargá el resultado limpio.</p>
+      </div>
     </div>
-  </section>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">
+      <div class="flow-icon">🔍</div>
+      <div class="flow-body">
+        <h3>Exploralo</h3>
+        <p>Perfil completo, distribuciones, correlaciones, estadísticas. Todo automático, todo visual, todo listo.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="card feature-card">
+      <span class="feature-icon">⚡</span>
+      <h3>Automático</h3>
+      <p>Subí y ya. Datlas analiza, detecta problemas y te muestra resultados sin que toques una línea de código.</p>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">🎯</span>
+      <h3>Interactivo</h3>
+      <p>Elegí qué corregir, explorá visualmente, decidí con datos. No sos un pasajero — manejás vos.</p>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">📦</span>
+      <h3>Portátil</h3>
+      <p>Corre donde sea. Docker, local, cloud. Tus datasets viajan con vos, siempre disponibles.</p>
+    </div>
+  </div>
 </Layout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 3.5rem 1rem 2.5rem;
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    margin-bottom: 0.6rem;
+    line-height: 1.15;
+  }
+  .gradient {
+    background: linear-gradient(135deg, var(--accent), #ec4899, var(--accent));
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .hero-sub {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    max-width: 480px;
+    margin: 0 auto 1.8rem;
+  }
+
+  .steps-flow {
+    max-width: 480px;
+    margin: 0 auto 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.5rem;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .flow-step:hover { border-color: var(--border-hover); }
+  .flow-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+  .flow-body h3 { font-size: 1rem; margin-bottom: 0.2rem; }
+  .flow-body p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+  .flow-arrow {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    padding: 0.3rem 0;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .feature-card { text-align: center; padding: 1.5rem 1rem; }
+  .feature-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+  .feature-card h3 { font-size: 0.95rem; }
+  .feature-card p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 2rem 0.5rem 1.5rem; }
+    .hero h1 { font-size: 2rem; }
+  }
+</style>

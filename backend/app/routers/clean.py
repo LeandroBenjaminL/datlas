@@ -84,5 +84,5 @@ async def apply_cleaning(
         "filename": filename,
         "analysis": report,
         "cleaning_result": result,
-        "download_url": f"/api/export/clean_{filename}",
+        "download_url": f"/api/download/clean_{filename}",
     }
