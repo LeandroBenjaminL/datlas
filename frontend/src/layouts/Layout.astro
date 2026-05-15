@@ -6,6 +6,7 @@ const steps = [
   { label: 'Subir', icon: '📁', href: '/datlas/subir', desc: 'Cargá tu CSV' },
   { label: 'Limpiar', icon: '🧹', href: '/datlas/limpiar', desc: 'Corregí errores' },
   { label: 'Explorar', icon: '🔍', href: '/datlas/explorar', desc: 'Descubrí insights' },
+  { label: 'Pipeline', icon: '⚡', href: '/datlas/pipeline', desc: 'Todo automático' },
 ];
 
 function stepStatus(idx) {
@@ -286,6 +287,7 @@ function stepStatus(idx) {
         <a href="/datlas/subir" class={path.startsWith('/datlas/subir') ? 'active' : ''}>Subir</a>
         <a href="/datlas/limpiar" class={path.startsWith('/datlas/limpiar') ? 'active' : ''}>Limpiar</a>
         <a href="/datlas/explorar" class={path.startsWith('/datlas/explorar') ? 'active' : ''}>Explorar</a>
+        <a href="/datlas/pipeline" class={path.startsWith('/datlas/pipeline') ? 'active' : ''}>Pipeline</a>
       </nav>
     </header>
 

@@ -52,12 +52,13 @@ async def root():
 
 
 # ── Routers ──
-from app.routers import upload, clean, explore, export
+from app.routers import upload, clean, explore, export, pipeline
 
 app.include_router(upload.router)
 app.include_router(clean.router)
 app.include_router(explore.router)
 app.include_router(export.router)
+app.include_router(pipeline.router)
 
 
 # ── Quick test ──

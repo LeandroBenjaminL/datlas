@@ -1,0 +1,442 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Pipeline automático">
+  <div class="page-title">
+    <h1>⚡ Pipeline automático</h1>
+    <p>Subí un CSV y Datlas hace todo solo: lo sube, lo limpia, lo explora. Un solo paso.</p>
+  </div>
+
+  <div style="max-width:720px; margin:0 auto;">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-inner">
+        <span class="dz-icon">⚡</span>
+        <p class="dz-title">Arrastrá tu CSV acá</p>
+        <p class="dz-hint">o hace click para seleccionarlo</p>
+        <span class="dz-badge badge badge-blue">CSV · hasta 100 MB</span>
+      </div>
+      <input type="file" id="file-input" accept=".csv" />
+    </div>
+
+    <div id="pipeline-progress" class="pipeline-progress" style="display:none;">
+      <div class="step-track">
+        <div class="track-step" id="step-upload">
+          <span class="track-icon">📁</span>
+          <span class="track-label">Subiendo</span>
+          <span class="track-status" id="status-upload">esperando...</span>
+        </div>
+        <div class="track-connector"></div>
+        <div class="track-step" id="step-clean">
+          <span class="track-icon">🧹</span>
+          <span class="track-label">Limpiando</span>
+          <span class="track-status" id="status-clean">esperando...</span>
+        </div>
+        <div class="track-connector"></div>
+        <div class="track-step" id="step-explore">
+          <span class="track-icon">🔍</span>
+          <span class="track-label">Explorando</span>
+          <span class="track-status" id="status-explore">esperando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="results" class="results-area"></div>
+  </div>
+</Layout>
+
+<script>
+  const API = 'http://localhost:8000';
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const progress = document.getElementById('pipeline-progress');
+  const results = document.getElementById('results');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  ['dragover', 'dragleave', 'drop'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'dragover') {
+        dropzone.classList.add('dz-active');
+      } else {
+        dropzone.classList.remove('dz-active');
+      }
+      if (ev === 'drop' && e.dataTransfer.files.length > 0) {
+        startPipeline(e.dataTransfer.files[0]);
+      }
+    });
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) startPipeline(fileInput.files[0]);
+  });
+
+  function setStepStatus(stepId, status, label) {
+    const el = document.getElementById(`status-${stepId}`);
+    const track = document.getElementById(`step-${stepId}`);
+    if (el) el.textContent = label;
+    if (track) {
+      track.className = `track-step ${status}`;
+    }
+  }
+
+  async function startPipeline(file) {
+    if (!file.name.endsWith('.csv')) {
+      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center; padding:2rem;">
+        <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
+        <p style="color:var(--red); font-weight:600;">Solo archivos .csv</p>
+        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Volver</button>
+      </div>`;
+      return;
+    }
+
+    dropzone.style.display = 'none';
+    progress.style.display = 'block';
+    results.innerHTML = '';
+
+    setStepStatus('upload', 'active', 'subiendo...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API}/api/pipeline/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Error del servidor' }));
+        progress.style.display = 'none';
+        results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center; padding:2rem;">
+          <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
+          <p style="color:var(--red); font-weight:600;">${err.detail || 'Error en el pipeline'}</p>
+          <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+        </div>`;
+        return;
+      }
+
+      setStepStatus('upload', 'done', '✅ listo');
+      setStepStatus('clean', 'active', 'limpiando...');
+
+      const data = await res.json();
+
+      setStepStatus('clean', 'done', '✅ listo');
+      setStepStatus('explore', 'done', '✅ listo');
+
+      setTimeout(() => renderResults(data), 300);
+    } catch {
+      progress.style.display = 'none';
+      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center; padding:2rem;">
+        <p style="font-size:2rem; margin-bottom:0.3rem;">⚠️</p>
+        <p style="color:var(--red); font-weight:600;">Error de conexión</p>
+        <p class="text-secondary" style="font-size:0.85rem;">¿La API está corriendo en localhost:8000?</p>
+        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+      </div>`;
+    }
+  }
+
+  function renderResults(data) {
+    const ui = data.upload_info || {};
+    const cr = data.cleaning_result || {};
+    const er = data.explore_report || {};
+    const p = er.profile || {};
+    const corr = er.correlations || {};
+    const dist = er.distributions || {};
+    const ns = er.null_summary || {};
+
+    const nullPct = 100 - ns.overall_pct;
+
+    let html = `
+      <div class="card result-summary fade-in">
+        <div class="text-center" style="margin-bottom:1.2rem;">
+          <p style="font-size:2.5rem; margin-bottom:0.3rem;">✅</p>
+          <h2 style="font-size:1.3rem; font-weight:800;">Pipeline completado</h2>
+          <p class="text-secondary" style="font-size:0.85rem;">${ui.filename} — todo en un solo paso</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="sum-icon">📁</span>
+            <span class="sum-value">${ui.rows}</span>
+            <span class="sum-label">Filas originales</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-icon">🧹</span>
+            <span class="sum-value" style="color:var(--red);">-${cr.rows_removed}</span>
+            <span class="sum-label">Filas limpiadas</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-icon">📊</span>
+            <span class="sum-value" style="color:var(--green);">${cr.new_shape ? cr.new_shape[0] : '?'}</span>
+            <span class="sum-label">Filas finales</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-icon">🔗</span>
+            <span class="sum-value">${corr.pairs ? corr.pairs.length : 0}</span>
+            <span class="sum-label">Correlaciones</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (cr.applied_fixes && cr.applied_fixes.length > 0) {
+      html += `<div class="card mb-2 fade-in">
+        <h3>🧹 Correcciones aplicadas</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.5rem;">
+          ${cr.applied_fixes.map(f => `<span class="fix-tag">${f}</span>`).join('')}
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="card mb-2 fade-in text-center">
+        <p style="font-size:1.5rem; margin-bottom:0.2rem;">✨</p>
+        <p class="text-green">Dataset impecable, no necesitó correcciones.</p>
+      </div>`;
+    }
+
+    const numCols = Object.entries(p.columns || {}).filter(([_, info]) => info.type !== 'object');
+    const catCols = Object.entries(p.columns || {}).filter(([_, info]) => info.type === 'object');
+
+    html += `<div class="card mb-2 fade-in">
+      <h3>📊 Perfil del dataset</h3>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.5rem;">
+        <span class="badge badge-blue">${numCols.length} numéricas</span>
+        <span class="badge badge-yellow">${catCols.length} categóricas</span>
+        <span class="badge ${ns.total_nulls > 0 ? 'badge-yellow' : 'badge-green'}">${ns.total_nulls > 0 ? ns.total_nulls + ' nulos residuales' : 'Sin nulos'}</span>
+        <span class="badge badge-blue">${p.shape ? p.shape.rows.toLocaleString() : '?'} filas</span>
+      </div>
+    </div>`;
+
+    if (corr.pairs && corr.pairs.length > 0) {
+      html += `<div class="card mb-2 fade-in">
+        <h3>🔗 Correlaciones principales</h3>
+        <div style="overflow-x:auto; margin-top:0.5rem;"><table>
+          <tr><th>X</th><th>Y</th><th style="text-align:right;">Valor</th><th>Relación</th></tr>`;
+      for (const cp of corr.pairs.slice(0, 5)) {
+        const color = cp.correlation >= 0 ? 'var(--green)' : 'var(--red)';
+        const label = cp.correlation >= 0.7 ? 'Fuerte +' : cp.correlation <= -0.7 ? 'Fuerte −' : cp.correlation >= 0.4 ? 'Moderada +' : cp.correlation <= -0.4 ? 'Moderada −' : 'Débil';
+        html += `<tr>
+          <td>${cp.x}</td>
+          <td>${cp.y}</td>
+          <td style="text-align:right; color:${color}; font-weight:600;">${cp.correlation.toFixed(3)}</td>
+          <td style="font-size:0.78rem;">${label}</td>
+        </tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+
+    if (dist && Object.keys(dist).length > 0) {
+      html += `<div class="card mb-2 fade-in">
+        <h3>📈 Distribuciones</h3>
+        <div id="chart-area" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:1rem; margin-top:0.5rem;"></div>
+      </div>`;
+    }
+
+    html += `
+      <div class="card fade-in">
+        <div class="btn-group" style="justify-content:center;">
+          <a href="/datlas/explorar?file=clean_${ui.filename}" class="btn btn-primary">🔍 Ver exploración completa</a>
+          <a href="/api/download/clean_${ui.filename}" class="btn btn-success" download>⬇ Descargar CSV limpio</a>
+          <button class="btn btn-outline" onclick="location.reload()">⚡ Nuevo pipeline</button>
+        </div>
+      </div>
+    `;
+
+    results.innerHTML = html;
+    setTimeout(renderCharts, 300);
+  }
+
+  function renderCharts() {
+    const chartArea = document.getElementById('chart-area');
+    if (!chartArea) return;
+    chartArea.innerHTML = '<p class="text-secondary" style="font-size:0.85rem;">Cargando gráficos...</p>';
+
+    fetch(`${API}/api/explore/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }).catch(() => {});
+
+    if (!window.Chart) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = drawCharts;
+      document.head.appendChild(s);
+    } else {
+      drawCharts();
+    }
+  }
+
+  function drawCharts() {
+    const container = document.getElementById('chart-area');
+    if (!container) return;
+    container.innerHTML = '';
+
+    fetch(`${API}/api/datasets`)
+      .then(r => r.json())
+      .then(data => {
+        const processed = data.processed || [];
+        const cleanFile = processed.find(f => f.filename.startsWith('clean_'));
+        if (!cleanFile) { container.innerHTML = '<p class="text-secondary" style="font-size:0.85rem;">Sin datos para gráficos.</p>'; return; }
+
+        return fetch(`${API}/api/explore/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: cleanFile.filename }),
+        });
+      })
+      .then(r => r && r.json())
+      .then(data => {
+        if (!data || !data.report) { container.innerHTML = '<p class="text-secondary" style="font-size:0.85rem;">Sin datos para gráficos.</p>'; return; }
+        const dist = data.report.distributions || {};
+        const cols = Object.keys(dist);
+        if (cols.length === 0) { container.innerHTML = '<p class="text-secondary" style="font-size:0.85rem;">Sin columnas numéricas para distribuciones.</p>'; return; }
+
+        container.innerHTML = '';
+        for (const col of cols) {
+          const d = dist[col];
+          const id = `pipe-ct-${col.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          const wrap = document.createElement('div');
+          wrap.innerHTML = `<h4 style="color:var(--text-primary); margin-bottom:0.3rem; font-size:0.82rem; font-weight:600;">${col}</h4>
+            <div style="position:relative; height:150px;"><canvas id="${id}"></canvas></div>`;
+          container.appendChild(wrap);
+          setTimeout(() => {
+            const ctx = document.getElementById(id)?.getContext('2d');
+            if (!ctx) return;
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: d.edges.slice(0, -1).map((e, i) => `${e.toFixed(1)}–${d.edges[i+1].toFixed(1)}`),
+                datasets: [{
+                  label: col, data: d.counts,
+                  backgroundColor: 'rgba(167, 139, 250, 0.6)',
+                  borderColor: 'rgba(167, 139, 250, 0.9)',
+                  borderWidth: 1, borderRadius: 4,
+                }],
+              },
+              options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { ticks: { color: '#94a3b8', font: { size: 8 }, maxRotation: 45 }, grid: { color: '#1e1e3a' } },
+                  y: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: '#1e1e3a' }, beginAtZero: true },
+                },
+              },
+            });
+          }, 50);
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<p class="text-secondary" style="font-size:0.85rem;">Error al cargar gráficos.</p>';
+      });
+  }
+</script>
+
+<style>
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .dropzone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, var(--accent-bg), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .dropzone:hover::before, .dropzone.dz-active::before { opacity: 1; }
+  .dropzone input { display: none; }
+  .dropzone-inner {
+    position: relative;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .dz-icon { font-size: 3.5rem; margin-bottom: 0.3rem; }
+  .dz-title { color: var(--text-primary); font-weight: 600; font-size: 1rem; }
+  .dz-hint { color: var(--text-muted); font-size: 0.82rem; }
+  .dz-badge { margin-top: 0.5rem; }
+  .dz-active { border-color: var(--accent); background: var(--accent-bg); }
+
+  .pipeline-progress {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .step-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  .track-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    min-width: 80px;
+  }
+  .track-icon { font-size: 1.5rem; }
+  .track-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+  .track-status { font-size: 0.7rem; color: var(--text-muted); }
+  .track-step.active .track-icon { animation: pulse 1s ease-in-out infinite; }
+  .track-step.active .track-status { color: var(--accent); font-weight: 600; }
+  .track-step.done .track-icon { filter: none; }
+  .track-step.done .track-status { color: var(--green); font-weight: 600; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .track-connector {
+    width: 48px;
+    height: 2px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .results-area { margin-top: 1rem; }
+
+  .result-summary { border-color: rgba(34, 197, 94, 0.3); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.6rem;
+  }
+  .summary-card {
+    text-align: center;
+    padding: 0.8rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+  }
+  .sum-icon { font-size: 1.5rem; display: block; margin-bottom: 0.2rem; }
+  .sum-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); display: block; }
+  .sum-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; }
+
+  .fix-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: var(--green-bg);
+    color: var(--green);
+    border-radius: 20px;
+    font-size: 0.72rem;
+  }
+
+  @media (max-width: 600px) {
+    .step-track { flex-wrap: wrap; gap: 0.3rem; }
+    .track-connector { width: 16px; }
+    .track-step { min-width: 60px; padding: 0.3rem 0.5rem; }
+  }
+</style>
