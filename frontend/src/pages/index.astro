@@ -56,7 +56,67 @@ import Layout from '../layouts/Layout.astro';
       <p>Corre donde sea. Docker, local, cloud. Tus datasets viajan con vos, siempre disponibles.</p>
     </div>
   </div>
+
+  <div id="dataset-list" class="card dataset-section">
+    <div class="ds-header">
+      <h3>📦 Datasets disponibles</h3>
+      <span id="ds-count" class="badge badge-blue">cargando...</span>
+    </div>
+    <div id="ds-body" class="ds-body">
+      <p class="text-secondary" style="text-align:center; padding:1rem;">Cargando datasets...</p>
+    </div>
+  </div>
 </Layout>
+
+<script>
+  const API = 'http://localhost:8000';
+  fetch(`${API}/api/datasets`)
+    .then(r => r.json())
+    .then(data => {
+      const raw = data.raw || [];
+      const processed = data.processed || [];
+      const list = document.getElementById('dataset-list');
+      const body = document.getElementById('ds-body');
+      const count = document.getElementById('ds-count');
+      if (!list) return;
+
+      if (raw.length === 0) {
+        count.textContent = 'vacío';
+        count.className = 'badge badge-yellow';
+        body.innerHTML = `
+          <div class="ds-empty">
+            <p style="font-size:2.5rem; margin-bottom:0.3rem;">📭</p>
+            <p class="text-secondary">Todavía no subiste ningún dataset.</p>
+            <a href="/datlas/subir" class="btn btn-primary btn-sm mt-1">📁 Subir tu primer CSV</a>
+          </div>`;
+        return;
+      }
+
+      count.textContent = `${raw.length} dataset${raw.length > 1 ? 's' : ''}`;
+      count.className = 'badge badge-green';
+
+      body.innerHTML = raw.map(d => {
+        const isClean = processed.some(p => p.filename === `clean_${d.filename}`);
+        return `<div class="ds-row">
+          <div class="ds-info">
+            <span class="ds-name">${d.filename}</span>
+            <span class="ds-meta">${d.size_kb} KB</span>
+            ${isClean ? '<span class="badge badge-green" style="font-size:0.65rem;">limpiado</span>' : ''}
+          </div>
+          <div class="ds-actions">
+            <a href="/datlas/limpiar?file=${d.filename}" class="btn btn-outline btn-sm">🧹 Limpiar</a>
+            <a href="/datlas/explorar?file=${d.filename}" class="btn btn-primary btn-sm">🔍 Explorar</a>
+          </div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      const count = document.getElementById('ds-count');
+      const body = document.getElementById('ds-body');
+      if (count) { count.textContent = 'error'; count.className = 'badge badge-red'; }
+      if (body) body.innerHTML = `<p class="text-secondary" style="text-align:center; padding:1rem; color:var(--red);">⚠️ No se pudo conectar con la API.</p>`;
+    });
+</script>
 
 <style>
   .hero {
@@ -130,8 +190,39 @@ import Layout from '../layouts/Layout.astro';
   .feature-card h3 { font-size: 0.95rem; }
   .feature-card p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
 
+  .dataset-section { margin-bottom: 1rem; }
+  .ds-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ds-header h3 { margin: 0; }
+  .ds-body { min-height: 60px; }
+  .ds-empty { text-align: center; padding: 0.5rem 0; }
+  .ds-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .ds-row:hover { background: var(--accent-bg); }
+  .ds-row + .ds-row { border-top: 1px solid var(--border); }
+  .ds-info { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .ds-name { font-weight: 600; font-size: 0.88rem; }
+  .ds-meta { color: var(--text-muted); font-size: 0.75rem; }
+  .ds-actions { display: flex; gap: 0.3rem; }
+
   @media (max-width: 600px) {
     .hero { padding: 2rem 0.5rem 1.5rem; }
     .hero h1 { font-size: 2rem; }
+    .ds-row { flex-direction: column; align-items: stretch; }
+    .ds-actions { justify-content: flex-end; }
   }
 </style>
