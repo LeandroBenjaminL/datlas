@@ -2,26 +2,28 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Subir dataset">
+<Layout title="SUBIR">
   <div class="page-title">
-    <h1>📁 Subir dataset</h1>
+    <h1><span class="highlight">📁</span> SUBIR DATASET</h1>
     <p>Arrastrá tu archivo CSV o hace click para seleccionarlo. Soportamos archivos de hasta 100 MB.</p>
   </div>
 
-  <div style="max-width:520px; margin:0 auto;">
+  <div style="max-width:480px; margin:0 auto;">
     <div id="dropzone" class="dropzone">
       <div class="dropzone-inner">
-        <span class="dz-icon">📂</span>
-        <p class="dz-title">Arrastrá tu archivo acá</p>
-        <p class="dz-hint">o hace click para buscar</p>
-        <span class="dz-badge badge badge-blue">CSV · Máx 100 MB</span>
+        <div class="dz-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <p class="dz-title">ARRASTRÁ TU ARCHIVO ACÁ</p>
+        <p class="dz-hint">o hace click para seleccionar</p>
+        <span class="badge badge-cyan" style="margin-top:.2rem;">CSV · Máx 100 MB</span>
       </div>
       <input type="file" id="file-input" accept=".csv" />
     </div>
 
     <div id="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Subiendo <span id="loading-name"></span>...</p>
+      <div class="spinner" style="margin:0 auto;"></div>
+      <p style="color:var(--color-text-dim); margin-top:.8rem; font-size:.62rem; letter-spacing:.04em;">SUBIENDO <span id="loading-name" style="color:var(--color-true);"></span></p>
     </div>
 
     <div id="results" class="results-area"></div>
@@ -58,11 +60,11 @@ import Layout from '../layouts/Layout.astro';
 
   async function uploadFile(file) {
     if (!file.name.endsWith('.csv')) {
-      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
-        <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
-        <p style="color:var(--red); font-weight:600;">Solo archivos .csv</p>
-        <p class="text-secondary" style="font-size:0.85rem; margin-top:0.3rem;">Seleccioná un archivo con extensión .csv</p>
-        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Volver</button>
+      results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center;">
+        <p style="font-size:1.8rem; margin-bottom:.3rem;">❌</p>
+        <p style="color:var(--red); font-weight:600; font-size:.72rem;">SOLO ARCHIVOS .CSV</p>
+        <p class="text-secondary" style="font-size:.65rem; margin-top:.3rem;">Seleccioná un archivo con extensión .csv</p>
+        <button class="action-btn secondary sm mt-1" onclick="location.reload()">VOLVER</button>
       </div>`;
       results.classList.add('fade-in');
       return;
@@ -80,22 +82,22 @@ import Layout from '../layouts/Layout.astro';
       loading.style.display = 'none';
 
       if (!res.ok) {
-        results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
-          <p style="font-size:2rem; margin-bottom:0.3rem;">❌</p>
-          <p style="color:var(--red); font-weight:600;">${data.detail || 'Error al subir el archivo'}</p>
-          <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Intentar de nuevo</button>
+        results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center;">
+          <p style="font-size:1.8rem; margin-bottom:.3rem;">❌</p>
+          <p style="color:var(--red); font-weight:600; font-size:.72rem;">${data.detail || 'Error al subir el archivo'}</p>
+          <button class="action-btn secondary sm mt-1" onclick="location.reload()">INTENTAR DE NUEVO</button>
         </div>`;
         results.classList.add('fade-in');
         return;
       }
 
       results.innerHTML = `
-        <div class="card success-card fade-in">
+        <div class="glass-card success-card fade-in">
           <div class="success-header">
-            <span class="success-icon">✅</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <div>
-              <h3>${data.filename}</h3>
-              <p class="text-secondary" style="font-size:0.82rem;">Recibido y listo para procesar</p>
+              <h3 style="font-size:.85rem; color:var(--green);">${data.filename}</h3>
+              <p class="text-secondary" style="font-size:.62rem;">Recibido y listo para procesar</p>
             </div>
           </div>
 
@@ -122,23 +124,19 @@ import Layout from '../layouts/Layout.astro';
           </div>
 
           <div class="success-actions">
-            <a href="/datlas/limpiar?file=${data.filename}" class="btn btn-primary">
-              🧹 Ir a limpiar
-            </a>
-            <a href="/datlas/explorar?file=${data.filename}" class="btn btn-outline">
-              🔍 Explorar directo
-            </a>
-            <button class="btn btn-outline btn-sm" onclick="location.reload()">Subir otro</button>
+            <a href="/datlas/limpiar?file=${data.filename}" class="action-btn primary sm">LIMPIAR</a>
+            <a href="/datlas/explorar?file=${data.filename}" class="action-btn secondary sm">EXPLORAR</a>
+            <button class="action-btn secondary sm" onclick="location.reload()">SUBIR OTRO</button>
           </div>
         </div>
       `;
     } catch {
       loading.style.display = 'none';
-      results.innerHTML = `<div class="card" style="border-color:var(--red); text-align:center;">
-        <p style="font-size:2rem; margin-bottom:0.3rem;">⚠️</p>
-        <p style="color:var(--red); font-weight:600;">Error de conexión</p>
-        <p class="text-secondary" style="font-size:0.85rem;">¿La API está corriendo en localhost:8000?</p>
-        <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+      results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center;">
+        <p style="font-size:1.8rem; margin-bottom:.3rem;">⚠️</p>
+        <p style="color:var(--red); font-weight:600; font-size:.72rem;">ERROR DE CONEXIÓN</p>
+        <p class="text-secondary" style="font-size:.62rem;">¿La API está corriendo en localhost:8000?</p>
+        <button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button>
       </div>`;
       results.classList.add('fade-in');
     }
@@ -147,100 +145,105 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   .dropzone {
-    border: 2px dashed var(--border);
+    border: 1.5px dashed rgba(0, 240, 255, 0.12);
     border-radius: var(--radius);
-    background: var(--bg-card);
+    background: var(--color-gate-bg);
+    border-color: var(--color-gate-border);
     cursor: pointer;
-    transition: all 0.25s;
+    transition: all .3s var(--ease-expo);
     position: relative;
     overflow: hidden;
   }
   .dropzone::before {
     content: '';
     position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 50%, var(--accent-bg), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.04), transparent 70%);
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity .3s var(--ease-expo);
   }
   .dropzone:hover::before, .dropzone.dz-active::before { opacity: 1; }
+  .dropzone:hover { border-color: rgba(0, 240, 255, 0.2); }
   .dropzone input { display: none; }
   .dropzone-inner {
     position: relative;
-    padding: 3rem 2rem;
+    padding: 2.5rem 1.5rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    gap: .2rem;
   }
-  .dz-icon { font-size: 3.5rem; margin-bottom: 0.3rem; }
-  .dz-title { color: var(--text-primary); font-weight: 600; font-size: 1rem; }
-  .dz-hint { color: var(--text-muted); font-size: 0.82rem; }
-  .dz-badge { margin-top: 0.5rem; }
+  .dz-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: 1px solid var(--color-gate-border);
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: .4rem;
+    color: var(--color-true);
+    opacity: .6;
+    transition: opacity .3s var(--ease-expo);
+  }
+  .dropzone:hover .dz-icon-wrap, .dz-active .dz-icon-wrap { opacity: 1; }
+  .dz-title { color: var(--color-text); font-weight: 600; font-size: .75rem; letter-spacing: .06em; }
+  .dz-hint { color: var(--color-text-dim); font-size: .6rem; }
   .dz-active {
-    border-color: var(--accent);
-    background: var(--accent-bg);
+    border-color: rgba(0, 240, 255, 0.3);
+    background: rgba(0, 240, 255, 0.06);
   }
 
   .loading-state {
     display: none;
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 2rem 1.5rem;
   }
-  .loading-state p { color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem; }
-  .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .results-area { margin-top: 1.2rem; }
+  .results-area { margin-top: 1rem; }
 
-  .success-card { border-color: rgba(34, 197, 94, 0.3); }
+  .success-card { border-color: rgba(0, 240, 255, 0.15); }
   .success-header {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 1.2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+    gap: .6rem;
+    margin-bottom: .8rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--color-gate-border);
   }
-  .success-icon { font-size: 2rem; }
-  .success-header h3 { margin: 0; font-size: 1.1rem; }
+  .success-header h3 { margin: 0; }
 
   .stats-row {
     display: flex;
     justify-content: center;
-    gap: 2rem;
-    margin-bottom: 1.2rem;
+    gap: 1.5rem;
+    margin-bottom: .8rem;
     flex-wrap: wrap;
   }
   .stat { text-align: center; }
-  .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--accent); display: block; }
-  .stat-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.5px; }
+  .stat-value { font-size: 1.2rem; font-weight: 700; color: var(--color-true); display: block; }
+  .stat-label { font-size: .5rem; color: var(--color-text-dim); letter-spacing: .1em; text-transform: uppercase; }
 
-  .cols-preview { margin-bottom: 1.2rem; }
-  .cols-title { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600; }
-  .cols-list { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .cols-preview { margin-bottom: .8rem; }
+  .cols-title { font-size: .58rem; color: var(--color-text-dim); margin-bottom: .35rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .cols-list { display: flex; flex-wrap: wrap; gap: .25rem; }
   .col-tag {
-    padding: 0.15rem 0.5rem;
-    background: var(--accent-bg);
-    color: var(--accent-hover);
+    padding: .08rem .4rem;
+    background: rgba(0, 240, 255, 0.06);
+    color: var(--color-true);
+    border: 1px solid var(--color-gate-border);
     border-radius: 20px;
-    font-size: 0.72rem;
+    font-size: .58rem;
     font-weight: 500;
   }
 
   .success-actions {
     display: flex;
-    gap: 0.6rem;
+    gap: .4rem;
     justify-content: center;
     flex-wrap: wrap;
-    padding-top: 0.8rem;
-    border-top: 1px solid var(--border);
+    padding-top: .6rem;
+    border-top: 1px solid var(--color-gate-border);
   }
 </style>

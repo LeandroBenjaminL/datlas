@@ -2,17 +2,19 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Explorar datos">
+<Layout title="EXPLORAR">
   <div class="page-title">
-    <h1>🔍 Explorar</h1>
+    <h1><span class="highlight">🔍</span> EXPLORAR</h1>
     <p>Seleccioná un dataset y Datlas te muestra todo su perfil: estadísticas, distribuciones, correlaciones.</p>
   </div>
 
-  <div id="app" style="max-width:860px; margin:0 auto;">
-    <p style="text-align:center; color:var(--text-secondary); padding:2rem;">
-      <span class="spinner"></span>
-      <span style="display:block; margin-top:0.8rem;">Cargando...</span>
-    </p>
+  <div id="app" style="max-width:800px; margin:0 auto;">
+    <div style="text-align:center; padding:3rem 2rem;">
+      <div class="spinner" style="margin:0 auto;"></div>
+      <p style="color:var(--color-text-dim); margin-top:1rem; font-size:.68rem; letter-spacing:.04em;">
+        CONECTANDO CON EL SERVIDOR<span class="dots">...</span>
+      </p>
+    </div>
   </div>
 </Layout>
 
@@ -32,36 +34,36 @@ import Layout from '../layouts/Layout.astro';
   function show(html) { el.innerHTML = html; }
 
   function showError(msg) {
-    show(`<div class="card" style="border-color:var(--red); text-align:center; padding:2rem;">
-      <p style="font-size:2rem; margin-bottom:0.5rem;">⚠️</p>
-      <p style="color:var(--red); font-weight:600; margin-bottom:0.3rem;">Error</p>
-      <p class="text-secondary">${msg}</p>
-      <button class="btn btn-outline btn-sm mt-1" onclick="location.reload()">Reintentar</button>
+    show(`<div class="glass-card" style="border-color:rgba(255,68,102,0.2); text-align:center; padding:2rem 1.5rem;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" style="margin:0 auto .6rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p style="color:var(--red); font-weight:600; font-size:.75rem; margin-bottom:.3rem;">ERROR DE CONEXIÓN</p>
+      <p class="text-secondary" style="font-size:.62rem; max-width:320px; margin:0 auto .8rem;">${msg}</p>
+      <button class="action-btn secondary sm" onclick="location.reload()">REINTENTAR</button>
     </div>`);
   }
 
   function renderSelector() {
     return `
-      <div class="card" style="padding:1.2rem; margin-bottom:1.5rem;">
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-          <span style="font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Dataset:</span>
-          <select id="ds-select" style="flex:1; min-width:160px;">
+      <div class="glass-card" style="padding:.8rem 1rem; margin-bottom:1rem;">
+        <div style="display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;">
+          <span style="font-weight:600; font-size:.6rem; color:var(--color-text-dim); letter-spacing:.08em; text-transform:uppercase;">Dataset:</span>
+          <select id="ds-select" style="flex:1; min-width:140px; font-size:.65rem;">
             ${datasets.map(d => `<option value="${d.filename}" ${d.filename === selectedFile ? 'selected' : ''}>${d.filename} (${d.size_kb} KB)</option>`).join('')}
           </select>
-          <button id="go-btn" class="btn btn-primary">🔍 Explorar</button>
-          <a href="/datlas/subir" class="btn btn-outline btn-sm">+ Subir</a>
+          <button id="go-btn" class="action-btn primary sm">EXPLORAR</button>
+          <a href="/datlas/subir" class="action-btn secondary sm">+ SUBIR</a>
         </div>
       </div>`;
   }
 
   function renderTabs() {
     const tabs = [
-      { id: 'resumen', label: '📊 Resumen' },
-      { id: 'preview', label: '👀 Vista previa' },
-      { id: 'nulos', label: '⚠️ Nulos' },
-      { id: 'numerico', label: '📈 Numérico' },
-      { id: 'categorias', label: '🏷️ Categorías' },
-      { id: 'corr', label: '🔗 Correlaciones' },
+      { id: 'resumen', label: 'RESUMEN' },
+      { id: 'preview', label: 'VISTA' },
+      { id: 'nulos', label: 'NULOS' },
+      { id: 'numerico', label: 'NUMÉRICO' },
+      { id: 'categorias', label: 'CATEGORÍAS' },
+      { id: 'corr', label: 'CORRELACIONES' },
     ];
     return `<div class="tabs">
       ${tabs.map(t => `<button class="tab-btn ${activeTab === t.id ? 'active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
@@ -72,7 +74,6 @@ import Layout from '../layouts/Layout.astro';
   function renderReport() {
     if (!report) return;
     const r = report;
-
     let html = renderSelector();
     html += renderTabs();
     show(html);
@@ -89,8 +90,14 @@ import Layout from '../layouts/Layout.astro';
     document.getElementById('go-btn')?.addEventListener('click', () => {
       selectedFile = document.getElementById('ds-select').value;
       activeTab = 'resumen';
-      show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Analizando ${selectedFile}...</p></div>`);
-      doExplore();
+        show(`<div style="text-align:center; padding:2.5rem 1.5rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+          <div style="margin-top:.8rem;">
+            <p style="color:var(--color-true); font-size:.72rem; font-weight:500; letter-spacing:.04em;">ANALIZANDO</p>
+            <p style="color:var(--color-text-dim); font-size:.6rem; margin-top:.15rem;">${selectedFile}</p>
+          </div>
+        </div>`);
+        doExplore();
     });
     document.getElementById('ds-select')?.addEventListener('change', (e) => {
       selectedFile = e.target.value;
@@ -101,7 +108,6 @@ import Layout from '../layouts/Layout.astro';
   function renderTabContent(r) {
     const tc = document.getElementById('tab-content');
     if (!tc) return;
-
     switch (activeTab) {
       case 'resumen': tc.innerHTML = renderResumen(r); break;
       case 'preview': tc.innerHTML = renderPreview(r); break;
@@ -116,35 +122,34 @@ import Layout from '../layouts/Layout.astro';
     const p = r.profile;
     const ns = r.null_summary;
     const nullColor = ns.total_nulls > 0 ? 'var(--yellow)' : 'var(--green)';
-    const pctColor = ns.overall_pct > 1 ? 'var(--red)' : ns.overall_pct > 0 ? 'var(--yellow)' : 'var(--green)';
     const corr = r.correlations || {};
     const dist = r.distributions || {};
 
     let html = `
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:0.6rem; margin-bottom:1.5rem;">
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${p.shape.rows.toLocaleString()}</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">FILAS</p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr)); gap:.5rem; margin-bottom:1rem;">
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:var(--color-true);">${p.shape.rows.toLocaleString()}</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">FILAS</p>
         </div>
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${p.shape.columns}</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">COLUMNAS</p>
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:var(--color-true);">${p.shape.columns}</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">COLUMNAS</p>
         </div>
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:${nullColor};">${ns.total_nulls}</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">VALORES VACÍOS</p>
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:${nullColor};">${ns.total_nulls}</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">VACÍOS</p>
         </div>
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:${pctColor};">${100 - ns.overall_pct}%</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">COMPLETITUD</p>
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:${nullColor};">${100 - ns.overall_pct}%</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">COMPLETO</p>
         </div>
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${Object.keys(p.columns).length}</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">NUMÉRICAS</p>
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:var(--color-true);">${Object.keys(p.columns).length}</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">NUMÉRICAS</p>
         </div>
-        <div class="card text-center" style="padding:1rem;">
-          <p style="font-size:1.8rem; font-weight:800; color:var(--accent);">${Object.keys(dist).length}</p>
-          <p style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px;">DISTRIBUCIONES</p>
+        <div class="glass-card text-center" style="padding:.8rem;">
+          <p style="font-size:1.5rem; font-weight:800; color:var(--color-true);">${Object.keys(dist).length}</p>
+          <p style="font-size:.48rem; color:var(--color-text-dim); letter-spacing:.12em;">DISTRIBUCIONES</p>
         </div>
       </div>`;
 
@@ -152,21 +157,21 @@ import Layout from '../layouts/Layout.astro';
     const catCols = Object.entries(p.columns).filter(([_, info]) => info.type === 'object').length;
 
     html += `
-      <div class="card mb-2">
-        <h3 style="margin-bottom:0.8rem;">📋 Composición del dataset</h3>
-        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
-          <div><span class="badge badge-blue">${numCols} numéricas</span></div>
-          <div><span class="badge badge-yellow">${catCols} categóricas</span></div>
-          <div><span class="badge ${ns.total_nulls > 0 ? 'badge-yellow' : 'badge-green'}">${ns.total_nulls > 0 ? ns.total_nulls + ' nulos' : 'Sin nulos'}</span></div>
-          <div><span class="badge ${corr.pairs && corr.pairs.length > 0 ? 'badge-blue' : 'badge-green'}">${corr.pairs ? corr.pairs.length + ' correlaciones' : 'Sin correlaciones'}</span></div>
+      <div class="glass-card mb-2">
+        <h3>COMPOSICIÓN</h3>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+          <span class="badge badge-cyan">${numCols} numéricas</span>
+          <span class="badge badge-yellow">${catCols} categóricas</span>
+          <span class="badge ${ns.total_nulls > 0 ? 'badge-yellow' : 'badge-green'}">${ns.total_nulls > 0 ? ns.total_nulls + ' nulos' : 'Sin nulos'}</span>
+          <span class="badge badge-cyan">${corr.pairs ? corr.pairs.length + ' correlaciones' : 'Sin correlaciones'}</span>
         </div>
       </div>`;
 
     const stats = r.statistics || {};
     const statCols = Object.keys(stats);
     if (statCols.length > 0) {
-      html += `<div class="card mb-2"><h3>📐 Forma de la distribución</h3>
-        <div style="overflow-x:auto; margin-top:0.5rem;"><table>
+      html += `<div class="glass-card mb-2"><h3>FORMA DE DISTRIBUCIÓN</h3>
+        <div style="overflow-x:auto; margin-top:.4rem;"><table>
           <tr><th>Columna</th><th style="text-align:right;">Sesgo</th><th></th><th style="text-align:right;">Curtosis</th><th></th></tr>`;
       for (const col of statCols) {
         const s = stats[col];
@@ -175,30 +180,29 @@ import Layout from '../layouts/Layout.astro';
         html += `<tr>
           <td style="font-weight:500;">${col}</td>
           <td style="text-align:right;">${s.skewness}</td>
-          <td style="font-size:0.7rem; color:var(--text-secondary);">${skewLabel}</td>
+          <td style="font-size:.62rem; color:var(--color-text-dim);">${skewLabel}</td>
           <td style="text-align:right;">${s.kurtosis}</td>
-          <td style="font-size:0.7rem; color:var(--text-secondary);">${kurtLabel}</td>
+          <td style="font-size:.62rem; color:var(--color-text-dim);">${kurtLabel}</td>
         </tr>`;
       }
       html += `</table></div></div>`;
     }
-
     return html;
   }
 
   function renderPreview(r) {
     if (!r.preview || r.preview.length === 0) {
-      return `<div class="card text-center"><p class="text-secondary">Sin datos de previsualización.</p></div>`;
+      return `<div class="glass-card text-center"><p class="text-secondary" style="font-size:.68rem;">Sin datos de previsualización.</p></div>`;
     }
     const cols = Object.keys(r.preview[0]);
-    let html = `<div class="card"><h3>👀 Vista previa</h3>
-      <p class="text-secondary" style="font-size:0.8rem; margin-bottom:0.8rem;">Primeras ${r.preview.length} filas del dataset</p>
+    let html = `<div class="glass-card"><h3>VISTA PREVIA</h3>
+      <p class="text-secondary" style="font-size:.6rem; margin-bottom:.6rem;">Primeras ${r.preview.length} filas</p>
       <div style="overflow-x:auto;"><table>
-        <tr>${cols.map(c => `<th style="white-space:nowrap; font-size:0.68rem;">${c}</th>`).join('')}</tr>`;
+        <tr>${cols.map(c => `<th style="white-space:nowrap; font-size:.55rem;">${c}</th>`).join('')}</tr>`;
     for (const row of r.preview) {
       html += `<tr>${cols.map(c => {
         const val = row[c] ?? '';
-        return `<td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.78rem;">${val}</td>`;
+        return `<td style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.65rem;">${val}</td>`;
       }).join('')}</tr>`;
     }
     html += `</table></div></div>`;
@@ -209,21 +213,21 @@ import Layout from '../layouts/Layout.astro';
     const ns = r.null_summary;
     const nullCols = Object.entries(ns.columns);
     if (nullCols.length === 0) {
-      return `<div class="card text-center" style="padding:2rem;">
-        <p style="font-size:2.5rem; margin-bottom:0.5rem;">✨</p>
-        <p class="text-green" style="font-weight:600;">No hay valores faltantes</p>
-        <p class="text-secondary" style="font-size:0.85rem;">Todas las columnas están completas.</p>
+      return `<div class="glass-card text-center" style="padding:1.5rem;">
+        <p style="font-size:2rem; margin-bottom:.3rem;">✨</p>
+        <p class="text-green" style="font-weight:600; font-size:.78rem;">Sin valores faltantes</p>
+        <p class="text-secondary" style="font-size:.65rem;">Todas las columnas están completas.</p>
       </div>`;
     }
-    let html = `<div class="card"><h3>⚠️ Valores faltantes</h3>
-      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:1rem;">${ns.total_nulls} valores nulos en total (${ns.overall_pct}% del dataset)</p>`;
+    let html = `<div class="glass-card"><h3>VALORES FALTANTES</h3>
+      <p class="text-secondary" style="font-size:.62rem; margin-bottom:.8rem;">${ns.total_nulls} valores nulos (${ns.overall_pct}% del dataset)</p>`;
     for (const [col, info] of nullCols) {
       const p = Math.min(info.pct, 100);
       const barColor = p > 20 ? 'var(--red)' : p > 5 ? 'var(--yellow)' : 'var(--green)';
-      html += `<div style="margin-bottom:0.6rem;">
-        <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:0.2rem;">
+      html += `<div style="margin-bottom:.4rem;">
+        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin-bottom:.15rem;">
           <span style="font-weight:500;">${col}</span>
-          <span class="${p > 20 ? 'text-red' : 'text-secondary'}" style="font-size:0.78rem;">${info.count} filas (${info.pct}%)</span>
+          <span class="${p > 20 ? 'text-red' : 'text-secondary'}" style="font-size:.62rem;">${info.count} filas (${info.pct}%)</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${p}%; background:${barColor};"></div></div>
       </div>`;
@@ -236,16 +240,16 @@ import Layout from '../layouts/Layout.astro';
     const p = r.profile;
     const numCols = Object.entries(p.columns).filter(([_, info]) => info.type !== 'object');
     if (numCols.length === 0) {
-      return `<div class="card text-center"><p class="text-secondary">No hay columnas numéricas en este dataset.</p></div>`;
+      return `<div class="glass-card text-center"><p class="text-secondary" style="font-size:.68rem;">No hay columnas numéricas.</p></div>`;
     }
-    let html = `<div class="card"><h3>📈 Perfil numérico</h3>
-      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Media, mediana, desvío, mínimo y máximo por columna</p>
+    let html = `<div class="glass-card"><h3>PERFIL NUMÉRICO</h3>
+      <p class="text-secondary" style="font-size:.62rem; margin-bottom:.6rem;">Media, mediana, desvío, mínimo y máximo</p>
       <div style="overflow-x:auto;"><table>
         <tr><th>Columna</th><th>Tipo</th><th style="text-align:right;">∅</th><th style="text-align:right;">Únicos</th><th style="text-align:right;">Media</th><th style="text-align:right;">Mediana</th><th style="text-align:right;">Std</th><th style="text-align:right;">Mín</th><th style="text-align:right;">Máx</th></tr>`;
     for (const [col, info] of numCols) {
       html += `<tr>
         <td style="font-weight:600;">${col}</td>
-        <td style="color:var(--accent); font-size:0.72rem;">${info.type}</td>
+        <td style="color:var(--color-true); font-size:.62rem;">${info.type}</td>
         <td style="text-align:right;">${info.nulls || 0}</td>
         <td style="text-align:right;">${info.unique ?? '—'}</td>
         <td style="text-align:right;">${info.mean !== undefined ? info.mean : '—'}</td>
@@ -260,10 +264,10 @@ import Layout from '../layouts/Layout.astro';
     const dist = r.distributions || {};
     const distCols = Object.keys(dist);
     if (distCols.length > 0) {
-      html += `<div class="card mt-1">
-        <h3>📊 Distribuciones</h3>
-        <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Histogramas de las columnas numéricas</p>
-        <div id="chart-area" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1rem;"></div>
+      html += `<div class="glass-card mt-1">
+        <h3>DISTRIBUCIONES</h3>
+        <p class="text-secondary" style="font-size:.62rem; margin-bottom:.6rem;">Histogramas de columnas numéricas</p>
+        <div id="chart-area" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:.8rem;"></div>
       </div>`;
     }
     return html;
@@ -273,21 +277,21 @@ import Layout from '../layouts/Layout.astro';
     const cat = r.categorical_breakdown || {};
     const catCols = Object.keys(cat);
     if (catCols.length === 0) {
-      return `<div class="card text-center"><p class="text-secondary">No hay columnas categóricas en este dataset.</p></div>`;
+      return `<div class="glass-card text-center"><p class="text-secondary" style="font-size:.68rem;">No hay columnas categóricas.</p></div>`;
     }
-    let html = `<div class="card"><h3>🏷️ Columnas de texto</h3>
-      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:1rem;">Distribución de valores por categoría</p>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:1rem;">`;
+    let html = `<div class="glass-card"><h3>COLUMNAS DE TEXTO</h3>
+      <p class="text-secondary" style="font-size:.62rem; margin-bottom:.8rem;">Distribución de valores por categoría</p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:.8rem;">`;
     for (const col of catCols) {
       const items = cat[col];
       const maxCount = items[0]?.count || 1;
       html += `<div>
-        <h4 style="color:var(--text-secondary); font-size:0.78rem; margin-bottom:0.4rem; font-weight:600;">${col}</h4>`;
+        <h4 style="color:var(--color-text-dim); font-size:.62rem; margin-bottom:.3rem; font-weight:600;">${col}</h4>`;
       for (const item of items) {
-        html += `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
-          <span style="font-size:0.73rem; width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.value}</span>
-          <div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${(item.count / maxCount) * 100}%; background:var(--accent);"></div></div>
-          <span style="font-size:0.68rem; color:var(--text-muted); width:42px; text-align:right;">${item.pct}%</span>
+        html += `<div style="display:flex; align-items:center; gap:.3rem; margin-bottom:.15rem;">
+          <span style="font-size:.6rem; width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.value}</span>
+          <div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${(item.count / maxCount) * 100}%; background:var(--color-true);"></div></div>
+          <span style="font-size:.55rem; color:var(--color-text-dim); width:36px; text-align:right;">${item.pct}%</span>
         </div>`;
       }
       html += `</div>`;
@@ -299,38 +303,38 @@ import Layout from '../layouts/Layout.astro';
   function renderCorrelaciones(r) {
     const corr = r.correlations || {};
     if (!corr.pairs || corr.pairs.length === 0) {
-      return `<div class="card text-center" style="padding:2rem;">
-        <p style="font-size:2.5rem; margin-bottom:0.5rem;">🔗</p>
-        <p class="text-secondary">No hay suficientes columnas numéricas para calcular correlaciones.</p>
+      return `<div class="glass-card text-center" style="padding:1.5rem;">
+        <p style="font-size:2rem; margin-bottom:.3rem;">🔗</p>
+        <p class="text-secondary" style="font-size:.68rem;">No hay suficientes columnas numéricas para correlaciones.</p>
       </div>`;
     }
     const corrCols = Object.keys(corr.matrix);
-    let html = `<div class="card mb-1"><h3>🔗 Matriz de correlaciones</h3>
-      <p class="text-secondary" style="font-size:0.82rem; margin-bottom:0.8rem;">Rojo = correlación negativa, Verde = correlación positiva</p>`;
+    let html = `<div class="glass-card mb-1"><h3>MATRIZ DE CORRELACIONES</h3>
+      <p class="text-secondary" style="font-size:.62rem; margin-bottom:.6rem;">Rojo = negativa, Verde = positiva</p>`;
 
     if (corrCols.length > 1) {
-      html += `<div style="overflow-x:auto; margin-bottom:1rem;">
-        <table style="font-size:0.68rem; margin:0 auto;">
-          <tr><td style="padding:0.1rem;"></td>`;
+      html += `<div style="overflow-x:auto; margin-bottom:.8rem;">
+        <table style="font-size:.58rem; margin:0 auto;">
+          <tr><td style="padding:.05rem;"></td>`;
       for (const c of corrCols) {
-        html += `<th style="padding:0.1rem; writing-mode:vertical-lr; font-weight:600; color:var(--text-secondary); height:38px;">${c}</th>`;
+        html += `<th style="padding:.05rem; writing-mode:vertical-lr; font-weight:600; color:var(--color-text-dim); height:32px;">${c}</th>`;
       }
       html += `</tr>`;
       for (const c1 of corrCols) {
-        html += `<tr><td style="padding:0.1rem; font-weight:600; color:var(--text-secondary); font-size:0.65rem;">${c1}</td>`;
+        html += `<tr><td style="padding:.05rem; font-weight:600; color:var(--color-text-dim); font-size:.55rem;">${c1}</td>`;
         for (const c2 of corrCols) {
           const val = corr.matrix[c1][c2];
           const bg = val >= 0
-            ? `rgba(34,197,94,${Math.abs(val) * 0.55 + 0.1})`
-            : `rgba(239,68,68,${Math.abs(val) * 0.55 + 0.1})`;
-          html += `<td style="padding:0.1rem; text-align:center; background:${bg}; border-radius:3px; min-width:32px; font-weight:${Math.abs(val) > 0.7 ? '700' : '400'};">${val.toFixed(2)}</td>`;
+            ? `rgba(34,197,94,${Math.abs(val) * 0.5 + 0.08})`
+            : `rgba(239,68,68,${Math.abs(val) * 0.5 + 0.08})`;
+          html += `<td style="padding:.05rem; text-align:center; background:${bg}; border-radius:2px; min-width:28px; font-weight:${Math.abs(val) > 0.7 ? '700' : '400'};">${val.toFixed(2)}</td>`;
         }
         html += `</tr>`;
       }
       html += `</table></div>`;
     }
 
-    html += `<h4 style="color:var(--text-secondary); font-size:0.82rem; margin-bottom:0.5rem;">Pares más correlacionados</h4>
+    html += `<h4 style="color:var(--color-text-dim); font-size:.68rem; margin-bottom:.4rem;">Pares más correlacionados</h4>
       <table>
         <tr><th>X</th><th>Y</th><th style="text-align:right;">Valor</th><th>Relación</th></tr>`;
     for (const p of corr.pairs.slice(0, 5)) {
@@ -340,7 +344,7 @@ import Layout from '../layouts/Layout.astro';
         <td>${p.x}</td>
         <td>${p.y}</td>
         <td style="text-align:right; color:${color}; font-weight:600;">${p.correlation.toFixed(3)}</td>
-        <td style="font-size:0.78rem;">${label}</td>
+        <td style="font-size:.65rem;">${label}</td>
       </tr>`;
     }
     html += `</table></div>`;
@@ -348,8 +352,8 @@ import Layout from '../layouts/Layout.astro';
     const stats = r.statistics || {};
     const sCols = Object.keys(stats);
     if (sCols.length > 0) {
-      html += `<div class="card mt-1"><h3>📐 Forma de la distribución</h3>
-        <div style="overflow-x:auto; margin-top:0.5rem;"><table>
+      html += `<div class="glass-card mt-1"><h3>FORMA DE DISTRIBUCIÓN</h3>
+        <div style="overflow-x:auto; margin-top:.4rem;"><table>
           <tr><th>Columna</th><th style="text-align:right;">Sesgo</th><th></th><th style="text-align:right;">Curtosis</th><th></th></tr>`;
       for (const col of sCols) {
         const s = stats[col];
@@ -358,48 +362,63 @@ import Layout from '../layouts/Layout.astro';
         html += `<tr>
           <td style="font-weight:500;">${col}</td>
           <td style="text-align:right;">${s.skewness}</td>
-          <td style="font-size:0.7rem; color:var(--text-secondary);">${skewLabel}</td>
+          <td style="font-size:.55rem; color:var(--color-text-dim);">${skewLabel}</td>
           <td style="text-align:right;">${s.kurtosis}</td>
-          <td style="font-size:0.7rem; color:var(--text-secondary);">${kurtLabel}</td>
+          <td style="font-size:.55rem; color:var(--color-text-dim);">${kurtLabel}</td>
         </tr>`;
       }
       html += `</table></div></div>`;
     }
-
     return html;
   }
 
-  // ── Init ──
   fetch(`${API}/api/datasets`)
     .then(r => r.json())
     .then(data => {
       datasets = data.raw || [];
       if (fileFromUrl && datasets.some(d => d.filename === fileFromUrl)) {
         selectedFile = fileFromUrl;
-        show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Cargando ${selectedFile}...</p></div>`);
+        show(`<div style="text-align:center; padding:2.5rem 1.5rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+          <div style="margin-top:.8rem;">
+            <p style="color:var(--color-true); font-size:.72rem; font-weight:500; letter-spacing:.04em;">CARGANDO DATASET</p>
+            <p style="color:var(--color-text-dim); font-size:.6rem; margin-top:.15rem;">${selectedFile}</p>
+          </div>
+        </div>`);
         doExplore();
       } else if (datasets.length > 0) {
         selectedFile = datasets[0].filename;
         let html = renderSelector();
-        html += `<div class="card text-center" style="padding:2rem;">
-          <p style="font-size:1.5rem; margin-bottom:0.3rem;">🔍</p>
-          <p class="text-secondary">Elegí un dataset y hace click en "Explorar".</p>
+        html += `<div class="glass-card" style="text-align:center; padding:2rem 1.5rem;">
+          <div style="width:44px;height:44px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(0,240,255,0.04);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-true)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </div>
+          <p style="font-size:.75rem; font-weight:600; letter-spacing:.04em; margin-bottom:.2rem;">SELECCIONÁ UN DATASET</p>
+          <p class="text-secondary" style="font-size:.62rem;">Elegí un dataset de la lista y hace click en <strong style="color:var(--color-true); font-weight:600;">EXPLORAR</strong>.</p>
         </div>`;
         show(html);
         document.getElementById('go-btn')?.addEventListener('click', () => {
           selectedFile = document.getElementById('ds-select').value;
-          show(`<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p style="color:var(--accent); margin-top:0.8rem;">Analizando ${selectedFile}...</p></div>`);
+          show(`<div style="text-align:center; padding:2.5rem 1.5rem;">
+          <div class="spinner" style="margin:0 auto;"></div>
+          <div style="margin-top:.8rem;">
+            <p style="color:var(--color-true); font-size:.72rem; font-weight:500; letter-spacing:.04em;">ANALIZANDO</p>
+            <p style="color:var(--color-text-dim); font-size:.6rem; margin-top:.15rem;">${selectedFile}</p>
+          </div>
+        </div>`);
           doExplore();
         });
         document.getElementById('ds-select')?.addEventListener('change', (e) => {
           selectedFile = e.target.value;
         });
       } else {
-        show(`<div class="card text-center" style="padding:2.5rem;">
-          <p style="font-size:3rem; margin-bottom:0.5rem;">📭</p>
-          <h3 style="margin-bottom:0.5rem;">No hay datasets cargados</h3>
-          <p class="text-secondary" style="margin-bottom:1.5rem;">Subí un CSV primero para poder explorarlo.</p>
-          <a href="/datlas/subir" class="btn btn-primary">📁 Subir dataset</a>
+        show(`<div class="glass-card" style="text-align:center; padding:2.5rem 1.5rem;">
+          <div style="width:48px;height:48px;border-radius:14px;border:1px solid var(--border-glass);background:rgba(0,240,255,0.04);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-true)" stroke-width="1.5" opacity=".6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <p style="font-size:.8rem; font-weight:600; letter-spacing:.04em; margin-bottom:.2rem;">NO HAY DATASETS</p>
+          <p class="text-secondary" style="font-size:.62rem; max-width:280px; margin:0 auto 1rem;">Subí un CSV primero para poder explorarlo.</p>
+          <a href="/datlas/subir" class="action-btn primary sm">SUBIR DATASET</a>
         </div>`);
       }
     })
@@ -447,8 +466,8 @@ import Layout from '../layouts/Layout.astro';
       const d = dist[col];
       const id = `ct-${col.replace(/[^a-zA-Z0-9]/g, '_')}`;
       const wrap = document.createElement('div');
-      wrap.innerHTML = `<h4 style="color:var(--text-primary); margin-bottom:0.3rem; font-size:0.82rem; font-weight:600;">${col}</h4>
-        <div style="position:relative; height:160px;"><canvas id="${id}"></canvas></div>`;
+      wrap.innerHTML = `<h4 style="font-size:.65rem; font-weight:600; margin-bottom:.2rem;">${col}</h4>
+        <div style="position:relative; height:140px;"><canvas id="${id}"></canvas></div>`;
       const labels = d.edges.slice(0, -1).map((e, i) => `${d.edges[i].toFixed(1)}–${d.edges[i+1].toFixed(1)}`);
       container.appendChild(wrap);
       setTimeout(() => {
@@ -460,17 +479,17 @@ import Layout from '../layouts/Layout.astro';
             labels,
             datasets: [{
               label: col, data: d.counts,
-              backgroundColor: 'rgba(167, 139, 250, 0.6)',
-              borderColor: 'rgba(167, 139, 250, 0.9)',
-              borderWidth: 1, borderRadius: 4,
+              backgroundColor: 'rgba(0, 240, 255, 0.2)',
+              borderColor: 'rgba(0, 240, 255, 0.4)',
+              borderWidth: 1, borderRadius: 3,
             }],
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              x: { ticks: { color: '#94a3b8', font: { size: 8 }, maxRotation: 45 }, grid: { color: '#1e1e3a' } },
-              y: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: '#1e1e3a' }, beginAtZero: true },
+              x: { ticks: { color: '#5a5a72', font: { size: 8 }, maxRotation: 45 }, grid: { color: 'rgba(0,240,255,0.04)' } },
+              y: { ticks: { color: '#5a5a72', font: { size: 8 } }, grid: { color: 'rgba(0,240,255,0.04)' }, beginAtZero: true },
             },
           },
         });
@@ -481,50 +500,41 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <style>
-  .spinner {
-    display: inline-block;
-    width: 28px; height: 28px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
   .tabs {
     display: flex;
-    gap: 0.15rem;
-    margin-bottom: 1rem;
+    gap: .1rem;
+    margin-bottom: .8rem;
     overflow-x: auto;
     flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
   }
   .tab-btn {
-    padding: 0.5rem 0.9rem;
-    border: 1px solid var(--border);
+    padding: .35rem .7rem;
+    border: 1px solid var(--border-glass);
     border-bottom: none;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    font-size: 0.78rem;
-    font-weight: 500;
+    border-radius: 6px 6px 0 0;
+    background: transparent;
+    color: var(--color-text-dim);
+    font-size: .58rem;
+    font-weight: 600;
+    letter-spacing: .08em;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all .25s var(--ease-expo);
     white-space: nowrap;
-    font-family: inherit;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
   }
-  .tab-btn:hover { background: var(--bg-card); color: var(--accent-hover); }
-  .tab-btn.active { background: var(--bg-card); color: var(--accent-hover); border-color: var(--border-hover); }
+  .tab-btn:hover { background: rgba(0, 240, 255, 0.04); color: var(--color-true); }
+  .tab-btn.active { background: rgba(0, 240, 255, 0.06); color: var(--color-true); border-color: rgba(0, 240, 255, 0.15); }
 
   .progress-bar {
-    background: var(--bg-primary);
-    border-radius: 4px;
-    height: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    height: 5px;
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s;
+    border-radius: 3px;
+    transition: width .4s;
   }
 </style>

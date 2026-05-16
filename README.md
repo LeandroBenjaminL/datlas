@@ -17,6 +17,7 @@ Datlas es una **arquitectura profesional** para limpieza y análisis de datos. S
 | **Docker** | latest | Mismo entorno en dev y prod. "En mi máquina funciona" no existe |
 | **Astro** | 5 | 0KB JS por defecto, islas de interactividad, build estático |
 | **pgAdmin** | latest | Interfaz visual para explorar la DB sin tocar terminal |
+| **Verity Engine** | — | Editor visual de circuitos lógicos adaptado para data pipelines |
 | **AWS Lambda** | — | Serverless: pagás solo cuando se usa (futuro) |
 
 Cada tecnología se eligió con un porqué documentado en [`docs/arquitectura.md`](docs/arquitectura.md).
@@ -109,6 +110,8 @@ docker compose up --build
 |----------|-----|-------|
 | API FastAPI | `http://localhost:8000` | — |
 | Documentación Swagger | `http://localhost:8000/docs` | — |
+| Frontend Astro | `http://localhost:4321/datlas` | — |
+| Flow (Verity Engine) | `http://localhost:4321/datlas/flow` | — |
 | pgAdmin | `http://localhost:5050` | `admin@datlas.com` / `admin` |
 | PostgreSQL | `localhost:5432` | `datlas` / `datlas_secreto_2026` |
 
@@ -239,6 +242,7 @@ datlas/
 - ✅ **Fase 1**: Perfil A — limpieza de datos (nulos, outliers, duplicados)
 - ⬜ **Fase 2**: Perfil B — exploración y profiling
 - ⬜ **Fase 3**: Perfil C — pipeline completo + exportación
+- ✅ **Fase 3.5**: Flow — editor visual de pipelines con Verity Engine (`/datlas/flow`)
 - ⬜ **Fase 4**: Deploy a AWS Lambda + API Gateway
 - ⬜ **Fase 5**: CI/CD con GitHub Actions (tests automáticos)
 
