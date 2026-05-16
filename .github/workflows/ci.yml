@@ -1,22 +1,23 @@
-name: CI — Ruff + Pytest
+name: CI
 
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'backend/**'
   push:
     branches: [main]
-    paths:
-      - 'backend/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint-test:
+
+  # ── Backend ──────────────────────────────────────
+  lint-backend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
-
     steps:
       - uses: actions/checkout@v4
 
@@ -24,14 +25,58 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest ruff
+      - name: Install deps
+        run: pip install -r requirements.txt ruff
 
       - name: Ruff lint
         run: ruff check app/ tests/
 
-      - name: Run tests
-        run: python -m pytest tests/ -v --tb=short
+      - name: Ruff format check
+        run: ruff format --check app/ tests/ || echo "⚠️  formatea con: ruff format app/ tests/"
+
+  test-backend:
+    needs: lint-backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install deps
+        run: pip install -r requirements.txt pytest pytest-cov
+
+      - name: Run tests + coverage
+        run: python -m pytest tests/ -v --tb=short --cov=app/ --cov-report=term-missing
+
+  # ── Frontend ─────────────────────────────────────
+  lint-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build check
+        run: npm run build
