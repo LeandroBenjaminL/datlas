@@ -2,7 +2,7 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4
-pydantic-settings==2.7.1
+pydantic-settings==2.14.1
 
 # ── Datos ──
 pandas==2.2.3
@@ -32,4 +32,4 @@ ruff==0.8.6
 bandit==1.9.4
 
 # ── Utilidades ──
-python-dotenv==1.0.1       # Cargar .env
+python-dotenv==1.2.2       # Cargar .env
