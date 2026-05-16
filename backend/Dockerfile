@@ -1,5 +1,5 @@
 # ── Python 3.12 + FastAPI ──
-FROM python:3.14-slim
+FROM python:3.13-slim
 
 # Evita que Python genere archivos .pyc y buffering en logs
 ENV PYTHONDONTWRITEBYTECODE=1
