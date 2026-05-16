@@ -1,11 +1,11 @@
 """Property-based tests with hypothesis — fuzz DataCleaner + DataExplorer."""
 import io
-import tempfile
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
-from hypothesis import given, strategies as st, settings
+import pandas as pd
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from app.services.cleaner import DataCleaner
 from app.services.explorer import DataExplorer
@@ -18,10 +18,10 @@ def dataframe_to_csv(df: pd.DataFrame) -> str:
 
 
 def csv_from_dataframe(df: pd.DataFrame) -> str:
-    """Write DataFrame to temp CSV and return path."""
-    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False)
-    df.to_csv(tmp.name, index=False)
-    return tmp.name
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tmp:
+        df.to_csv(tmp.name, index=False)
+        return tmp.name
 
 
 # ── Column name strategies ──

@@ -18,7 +18,7 @@ class TestDataCleaner:
     def test_detect_outliers(self, test_csv_path):
         cleaner = DataCleaner(test_csv_path)
         outliers = cleaner.detect_outliers()
-        for col, info in outliers.items():
+        for _col, info in outliers.items():
             assert info["outlier_count"] > 0
             assert "lower_bound" in info
             assert "upper_bound" in info

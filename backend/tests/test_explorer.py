@@ -23,7 +23,7 @@ class TestDataExplorer:
         explorer = DataExplorer(test_csv_path)
         dist = explorer.distributions()
         assert len(dist) > 0
-        for col, data in dist.items():
+        for _col, data in dist.items():
             assert "counts" in data
             assert "edges" in data
 
@@ -37,7 +37,7 @@ class TestDataExplorer:
         explorer = DataExplorer(test_csv_path)
         stats = explorer.statistics()
         assert len(stats) > 0
-        for col, data in stats.items():
+        for _col, data in stats.items():
             assert "skewness" in data
             assert "kurtosis" in data
 

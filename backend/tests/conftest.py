@@ -1,6 +1,6 @@
 from pathlib import Path
-import pytest
 
+import pytest
 
 FIXTURE_DIR = Path(__file__).parent / "data"
 
