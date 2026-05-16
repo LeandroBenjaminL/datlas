@@ -6,7 +6,7 @@ pydantic-settings==2.14.1
 
 # ── Datos ──
 pandas==2.2.3
-numpy==2.2.0
+numpy==2.4.5
 openpyxl==3.1.5           # Excel
 pyarrow==18.1.0            # Parquet
 
