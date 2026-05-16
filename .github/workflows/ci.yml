@@ -64,6 +64,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt pytest pytest-cov pytest-asyncio hypothesis
+      - name: Ensure data dirs
+        run: mkdir -p /app/data/raw /app/data/processed
       - run: python -m pytest tests/ -v --tb=short --cov=app/ --cov-report=term-missing -x
 
   frontend:
