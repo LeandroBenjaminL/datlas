@@ -4,15 +4,24 @@ Provides POST /api/clean/analyze to detect data quality issues
 and POST /api/clean/apply to apply configurable fixes on an uploaded dataset.
 """
 
-from fastapi import APIRouter, HTTPException, Body
 from pathlib import Path
+
+from fastapi import APIRouter, Body, HTTPException
+
 from app.services.cleaner import DataCleaner
 
 router = APIRouter(prefix="/api", tags=["clean"])
 
-DATA_RAW = Path("/app/data/raw")
-DATA_PROCESSED = Path("/app/data/processed")
-DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    DATA_PROCESSED = Path("/app/data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    DATA_PROCESSED = Path("data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/clean/analyze")

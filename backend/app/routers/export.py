@@ -5,14 +5,23 @@ Provides:
 - GET /api/download/{filename} — download a processed (or raw) file
 """
 
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from pathlib import Path
 
 router = APIRouter(prefix="/api", tags=["export"])
 
-DATA_RAW = Path("/app/data/raw")
-DATA_PROCESSED = Path("/app/data/processed")
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    DATA_PROCESSED = Path("/app/data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    DATA_PROCESSED = Path("data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 @router.get("/datasets")

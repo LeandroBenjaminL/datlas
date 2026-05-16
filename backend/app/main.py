@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.routers import clean, explore, export, pipeline, upload
 
 
 @asynccontextmanager
@@ -51,9 +52,6 @@ async def root():
     }
 
 
-# ── Routers ──
-from app.routers import upload, clean, explore, export, pipeline
-
 app.include_router(upload.router)
 app.include_router(clean.router)
 app.include_router(explore.router)
@@ -64,4 +62,5 @@ app.include_router(pipeline.router)
 # ── Quick test ──
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

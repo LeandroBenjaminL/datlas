@@ -1,7 +1,8 @@
 """Pipeline service — automated upload → clean → explore in one shot."""
 
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 from app.services.cleaner import DataCleaner
 from app.services.explorer import DataExplorer

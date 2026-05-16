@@ -4,14 +4,19 @@ Provides the POST /api/upload endpoint for uploading CSV files.
 Validates file type, saves to disk, and returns basic dataset metadata.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
 from pathlib import Path
+
 import pandas as pd
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 router = APIRouter(prefix="/api", tags=["upload"])
 
-DATA_DIR = Path("/app/data/raw")
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    DATA_DIR = Path("/app/data/raw")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_DIR = Path("data/raw")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/upload")

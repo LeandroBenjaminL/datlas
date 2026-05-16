@@ -4,13 +4,20 @@ Provides POST /api/explore/analyze to run a full EDA report
 on an uploaded dataset: profile, distributions, correlations, and statistics.
 """
 
-from fastapi import APIRouter, HTTPException, Body
 from pathlib import Path
+
+from fastapi import APIRouter, Body, HTTPException
+
 from app.services.explorer import DataExplorer
 
 router = APIRouter(prefix="/api", tags=["explore"])
 
-DATA_RAW = Path("/app/data/raw")
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/explore/analyze")

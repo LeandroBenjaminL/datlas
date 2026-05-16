@@ -1,7 +1,7 @@
 """Data exploration service — profiling, distributions, correlations, statistics."""
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 class DataExplorer:
@@ -43,15 +43,17 @@ class DataExplorer:
             }
             if is_num:
                 d = self.df[col].describe()
-                info.update({
-                    "mean": round(float(d.get("mean", 0)), 2),
-                    "std": round(float(d.get("std", 0)), 2),
-                    "min": round(float(d.get("min", 0)), 2),
-                    "q25": round(float(d.get("25%", 0)), 2),
-                    "median": round(float(d.get("50%", 0)), 2),
-                    "q75": round(float(d.get("75%", 0)), 2),
-                    "max": round(float(d.get("max", 0)), 2),
-                })
+                info.update(
+                    {
+                        "mean": round(float(d.get("mean", 0)), 2),
+                        "std": round(float(d.get("std", 0)), 2),
+                        "min": round(float(d.get("min", 0)), 2),
+                        "q25": round(float(d.get("25%", 0)), 2),
+                        "median": round(float(d.get("50%", 0)), 2),
+                        "q75": round(float(d.get("75%", 0)), 2),
+                        "max": round(float(d.get("max", 0)), 2),
+                    }
+                )
             else:
                 top_series = self.df[col].dropna()
                 if not top_series.empty:
@@ -106,11 +108,13 @@ class DataExplorer:
         cols = list(corr.columns)
         for i in range(len(cols)):
             for j in range(i + 1, len(cols)):
-                pairs.append({
-                    "x": cols[i],
-                    "y": cols[j],
-                    "correlation": round(float(corr.iloc[i, j]), 3),
-                })
+                pairs.append(
+                    {
+                        "x": cols[i],
+                        "y": cols[j],
+                        "correlation": round(float(corr.iloc[i, j]), 3),
+                    }
+                )
         pairs.sort(key=lambda p: abs(p["correlation"]), reverse=True)
 
         return {"matrix": matrix, "pairs": pairs}
