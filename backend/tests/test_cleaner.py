@@ -62,11 +62,13 @@ class TestDataCleaner:
 
     def test_full_clean(self, test_csv_path):
         cleaner = DataCleaner(test_csv_path)
-        result = cleaner.clean({
-            "fill_nulls": {"edad": "median", "salario": "mean"},
-            "remove_outliers": ["salario"],
-            "remove_duplicates": True,
-        })
+        result = cleaner.clean(
+            {
+                "fill_nulls": {"edad": "median", "salario": "mean"},
+                "remove_outliers": ["salario"],
+                "remove_duplicates": True,
+            }
+        )
         assert result["new_shape"][0] <= result["original_shape"][0]
         assert len(result["applied_fixes"]) >= 3
 

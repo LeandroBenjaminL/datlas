@@ -1,4 +1,5 @@
 """Property-based tests with hypothesis — fuzz DataCleaner + DataExplorer."""
+
 import io
 from pathlib import Path
 
@@ -19,6 +20,7 @@ def dataframe_to_csv(df: pd.DataFrame) -> str:
 
 def csv_from_dataframe(df: pd.DataFrame) -> str:
     import tempfile
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tmp:
         df.to_csv(tmp.name, index=False)
         return tmp.name
@@ -57,10 +59,12 @@ class TestDataCleanerHypothesis:
     )
     @settings(max_examples=15)
     def test_clean_with_nulls(self, n_rows, null_pct):
-        df = pd.DataFrame({
-            "a": np.random.randn(n_rows),
-            "b": np.random.randn(n_rows),
-        })
+        df = pd.DataFrame(
+            {
+                "a": np.random.randn(n_rows),
+                "b": np.random.randn(n_rows),
+            }
+        )
         mask_a = np.random.random(n_rows) < null_pct
         mask_b = np.random.random(n_rows) < null_pct
         df.loc[mask_a, "a"] = np.nan

@@ -4,8 +4,10 @@ Provides POST /api/clean/analyze to detect data quality issues
 and POST /api/clean/apply to apply configurable fixes on an uploaded dataset.
 """
 
-from fastapi import APIRouter, HTTPException, Body
 from pathlib import Path
+
+from fastapi import APIRouter, Body, HTTPException
+
 from app.services.cleaner import DataCleaner
 
 router = APIRouter(prefix="/api", tags=["clean"])

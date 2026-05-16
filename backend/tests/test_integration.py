@@ -1,7 +1,9 @@
 """Integration tests — real API calls via httpx."""
-import pytest
-from httpx import AsyncClient, ASGITransport
+
 from pathlib import Path
+
+import pytest
+from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 
@@ -45,10 +47,13 @@ async def test_clean_analyze(client):
 
 @pytest.mark.asyncio
 async def test_clean_apply(client):
-    r = await client.post("/api/clean/apply", json={
-        "filename": "test.csv",
-        "fixes": {"fill_nulls": {"edad": "median"}, "remove_duplicates": True},
-    })
+    r = await client.post(
+        "/api/clean/apply",
+        json={
+            "filename": "test.csv",
+            "fixes": {"fill_nulls": {"edad": "median"}, "remove_duplicates": True},
+        },
+    )
     assert r.status_code == 200
     data = r.json()
     assert "cleaning_result" in data

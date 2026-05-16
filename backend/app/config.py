@@ -32,8 +32,7 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         """Construye la URL de conexión a PostgreSQL."""
         return (
-            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@db:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}" f"@db:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
     @property

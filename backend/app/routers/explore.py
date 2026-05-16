@@ -4,8 +4,10 @@ Provides POST /api/explore/analyze to run a full EDA report
 on an uploaded dataset: profile, distributions, correlations, and statistics.
 """
 
-from fastapi import APIRouter, HTTPException, Body
 from pathlib import Path
+
+from fastapi import APIRouter, Body, HTTPException
+
 from app.services.explorer import DataExplorer
 
 router = APIRouter(prefix="/api", tags=["explore"])

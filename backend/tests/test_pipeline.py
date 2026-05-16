@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import pytest
 
 from app.services.pipeline import PipelineService
@@ -16,6 +17,7 @@ def pipeline(tmp_path) -> PipelineService:
 @pytest.fixture
 def pipeline_with_csv(pipeline, test_csv) -> PipelineService:
     import shutil
+
     raw = Path(pipeline.raw_dir)
     shutil.copy2(str(test_csv), str(raw / "test.csv"))
     return pipeline
