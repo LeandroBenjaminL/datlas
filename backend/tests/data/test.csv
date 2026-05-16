@@ -1,0 +1,11 @@
+nombre,edad,ciudad,salario,fecha_ingreso,activo
+Ana,28,Buenos Aires,55000,2023-01-15,true
+Carlos,,Córdoba,42000,2022-06-20,true
+María,35,Buenos Aires,,2024-03-10,false
+Juan,22,Rosario,31000,2023-11-05,true
+Laura,45,Córdoba,68000,,true
+Pedro,33,Buenos Aires,55000,2022-09-01,true
+Sofía,28,Rosario,,2024-01-15,false
+Diego,50,Córdoba,75000,2021-05-30,true
+Lucía,29,Buenos Aires,48000,2023-07-22,true
+Martín,,Rosario,39000,2022-12-10,true
