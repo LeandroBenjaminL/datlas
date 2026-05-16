@@ -47,6 +47,14 @@ data/processed/*
 dist/
 build/
 
+# Coverage
+.coverage
+*.coverage.*
+
+# pnpm (usamos npm, no versionar)
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
 # macOS
 .DS_Store
 .vscode/
