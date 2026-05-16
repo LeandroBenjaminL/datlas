@@ -14,10 +14,14 @@ router = APIRouter(prefix="/api", tags=["export"])
 
 try:
     DATA_RAW = Path("/app/data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
     DATA_PROCESSED = Path("/app/data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 except (OSError, PermissionError):
     DATA_RAW = Path("data/raw")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
     DATA_PROCESSED = Path("data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 @router.get("/datasets")

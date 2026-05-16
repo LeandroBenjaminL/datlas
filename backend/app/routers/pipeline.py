@@ -11,11 +11,13 @@ router = APIRouter(prefix="/api", tags=["pipeline"])
 try:
     DATA_RAW = Path("/app/data/raw")
     DATA_PROCESSED = Path("/app/data/processed")
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    pipeline = PipelineService(str(DATA_RAW), str(DATA_PROCESSED))
 except (OSError, PermissionError):
     DATA_RAW = Path("data/raw")
     DATA_PROCESSED = Path("data/processed")
-
-pipeline = PipelineService(str(DATA_RAW), str(DATA_PROCESSED))
+    DATA_RAW.mkdir(parents=True, exist_ok=True)
+    pipeline = PipelineService(str(DATA_RAW), str(DATA_PROCESSED))
 
 
 @router.post("/pipeline/upload")
