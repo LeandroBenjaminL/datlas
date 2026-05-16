@@ -12,7 +12,10 @@ from app.services.explorer import DataExplorer
 
 router = APIRouter(prefix="/api", tags=["explore"])
 
-DATA_RAW = Path("/app/data/raw")
+try:
+    DATA_RAW = Path("/app/data/raw")
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
 
 
 @router.post("/explore/analyze")

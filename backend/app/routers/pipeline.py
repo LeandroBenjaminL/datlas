@@ -8,8 +8,12 @@ from app.services.pipeline import PipelineService
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
 
-DATA_RAW = Path("/app/data/raw")
-DATA_PROCESSED = Path("/app/data/processed")
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_PROCESSED = Path("/app/data/processed")
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_PROCESSED = Path("data/processed")
 
 pipeline = PipelineService(str(DATA_RAW), str(DATA_PROCESSED))
 

@@ -12,8 +12,12 @@ from fastapi.responses import FileResponse
 
 router = APIRouter(prefix="/api", tags=["export"])
 
-DATA_RAW = Path("/app/data/raw")
-DATA_PROCESSED = Path("/app/data/processed")
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_PROCESSED = Path("/app/data/processed")
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_PROCESSED = Path("data/processed")
 
 
 @router.get("/datasets")

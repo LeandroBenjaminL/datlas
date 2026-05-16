@@ -12,9 +12,14 @@ from app.services.cleaner import DataCleaner
 
 router = APIRouter(prefix="/api", tags=["clean"])
 
-DATA_RAW = Path("/app/data/raw")
-DATA_PROCESSED = Path("/app/data/processed")
-DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+try:
+    DATA_RAW = Path("/app/data/raw")
+    DATA_PROCESSED = Path("/app/data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_RAW = Path("data/raw")
+    DATA_PROCESSED = Path("data/processed")
+    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/clean/analyze")

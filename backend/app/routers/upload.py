@@ -11,8 +11,12 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 
 router = APIRouter(prefix="/api", tags=["upload"])
 
-DATA_DIR = Path("/app/data/raw")
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    DATA_DIR = Path("/app/data/raw")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError):
+    DATA_DIR = Path("data/raw")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/upload")
