@@ -10,7 +10,6 @@ Provides the DataCleaner class that wraps a Pandas DataFrame and offers:
 
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
 
 class DataCleaner:
@@ -164,7 +163,7 @@ class DataCleaner:
         if sample.empty:
             return None
         try:
-            pd.to_datetime(sample)
+            pd.to_datetime(sample, format="mixed")
             if self.df[col].dtype != "datetime64[ns]":
                 return "datetime"
         except (ValueError, TypeError):

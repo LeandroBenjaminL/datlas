@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.routers import upload, clean, explore, export, pipeline
 
 
 @asynccontextmanager
@@ -50,9 +51,6 @@ async def root():
         "docs": "/docs",
     }
 
-
-# ── Routers ──
-from app.routers import upload, clean, explore, export, pipeline
 
 app.include_router(upload.router)
 app.include_router(clean.router)
