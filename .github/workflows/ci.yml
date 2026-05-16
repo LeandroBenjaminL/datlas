@@ -26,11 +26,13 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt bandit
       - name: Bandit SAST
-        run: bandit -c .bandit -r app/ -f sarif -o bandit-results.sarif || true
-      - uses: github/codeql-action/upload-sarif@v3
+        run: bandit -c .bandit -r app/ -f json -o bandit-results.json || true
+      - name: Upload bandit results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          sarif_file: backend/bandit-results.sarif
+          name: bandit-results
+          path: backend/bandit-results.json
 
   lint-backend:
     runs-on: ubuntu-latest

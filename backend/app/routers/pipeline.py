@@ -37,7 +37,7 @@ async def pipeline_upload(file: UploadFile = File(...)):
         result = pipeline.run(file.filename, raw_bytes=content)
         return result
     except Exception as e:
-        raise HTTPException(500, f"Pipeline error: {str(e)}")
+        raise HTTPException(500, f"Pipeline error: {str(e)}") from e
 
 
 @router.post("/pipeline/run")
@@ -57,6 +57,10 @@ async def pipeline_run(filename: str = Body(..., embed=True)):
         raise HTTPException(404, f"File {filename} not found. Upload it first via POST /api/upload")
 
     try:
+        result = pipeline.run(filename)
+        return result
+    except Exception as e:
+        raise HTTPException(500, f"Pipeline error: {str(e)}") from e
         result = pipeline.run(filename)
         return result
     except Exception as e:

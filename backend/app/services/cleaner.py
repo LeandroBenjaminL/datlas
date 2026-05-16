@@ -10,7 +10,6 @@ Provides the DataCleaner class that wraps a Pandas DataFrame and offers:
 
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
 
 class DataCleaner:
