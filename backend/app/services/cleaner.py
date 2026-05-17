@@ -8,9 +8,8 @@ Provides the DataCleaner class that wraps a Pandas DataFrame and offers:
 - Configurable cleaning pipeline
 """
 
-import pandas as pd
 import numpy as np
-from pathlib import Path
+import pandas as pd
 
 
 class DataCleaner:
@@ -173,9 +172,8 @@ class DataCleaner:
             numeric_sample = sample.str.replace(",", ".", regex=False)
             numeric_sample = numeric_sample.str.extract(r"^(-?\d+[.]?\d*)$", expand=False)
             numeric_sample = numeric_sample.dropna()
-            if len(numeric_sample) >= len(sample) * 0.8:
-                if self.df[col].dtype not in ["int64", "float64"]:
-                    return "numeric"
+            if len(numeric_sample) >= len(sample) * 0.8 and self.df[col].dtype not in ["int64", "float64"]:
+                return "numeric"
         except Exception:
             pass
         return None

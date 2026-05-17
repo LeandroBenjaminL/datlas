@@ -2,74 +2,152 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Inicio">
-  <section class="hero">
-    <h1>Datlas</h1>
-    <p>
-      Cargá tu dataset, limpiá los datos, explorá patrones y exportá resultados.
-      Todo en un solo lugar. Sin instalar nada.
-    </p>
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <a href="/datlas/subir" class="btn btn-primary">Empezar ahora</a>
-      <a href="https://github.com/LeandroBenjaminL/datlas" class="btn btn-outline">GitHub</a>
+<Layout title="INICIO">
+  <section class="hero" style="text-align:center; padding:2.5rem 1rem 1.5rem;">
+    <p style="display:inline-block; font-size:.52rem; font-weight:600; letter-spacing:.2em; color:var(--color-true); border:1px solid rgba(0,240,255,0.15); border-radius:20px; padding:.2rem .7rem; margin-bottom:1rem; background:rgba(0,240,255,0.04); text-transform:uppercase;">ANALIZÁ TUS DATOS</p>
+    <h1 style="font-size:2.5rem; font-weight:900; margin-bottom:.5rem; line-height:1.1; letter-spacing:-.02em;">Cargá, limpiá, <span style="background:linear-gradient(135deg,var(--color-true),var(--color-accent),var(--color-true));background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(0,240,255,0.25));">explorá</span>.</h1>
+    <p style="color:var(--color-text-dim); font-size:.72rem; max-width:400px; margin:0 auto 1.2rem;">Subí un CSV. Datlas lo analiza al toque. Sin instalarte nada, sin vueltas.</p>
+    <div style="display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;">
+      <a href="/datlas/subir" class="action-btn primary lg">SUBIR PRIMER DATASET</a>
     </div>
   </section>
 
-  <section>
-    <h2 style="text-align:center; color:#94a3b8; font-size:1rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:2rem;">Tres perfiles, una herramienta</h2>
-
-    <div class="grid-3">
-      <!-- Perfil A: Limpieza -->
-      <div class="card">
-        <span class="badge">Perfil A</span>
-        <h3>🧹 Limpieza</h3>
-        <p>
-          Detecta nulos, outliers, duplicados y tipos incorrectos automáticamente.
-          Normalizá tus datos en segundos.
-        </p>
-        <p style="margin-top:1rem;">
-          <a href="/datlas/limpiar" style="color:#a78bfa; text-decoration:none; font-weight:600;">Limpiar dataset →</a>
-        </p>
+  <div style="max-width:420px; margin:0 auto 1.5rem; display:flex; flex-direction:column; align-items:center;">
+    <div class="glass-card" style="display:flex; align-items:center; gap:.8rem; padding:.8rem 1rem; width:100%; position:relative;">
+      <div style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--color-true);opacity:.7;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
-
-      <!-- Perfil B: Exploración -->
-      <div class="card">
-        <span class="badge">Perfil B</span>
-        <h3>🔍 Exploración</h3>
-        <p>
-          Perfil automático: distribuciones, correlaciones, estadísticas.
-          Entendé tus datos antes de usarlos.
-        </p>
-        <p style="margin-top:1rem;">
-          <a href="/datlas/explorar" style="color:#a78bfa; text-decoration:none; font-weight:600;">Explorar dataset →</a>
-        </p>
-      </div>
-
-      <!-- Perfil C: Pipeline -->
-      <div class="card">
-        <span class="badge">Perfil C</span>
-        <h3>⚡ Pipeline</h3>
-        <p>
-          Del dataset crudo al resultado en un flujo automatizado.
-          Exportá a CSV, Excel, Parquet o directo a PostgreSQL.
-        </p>
-        <p style="margin-top:1rem; color:#4a4a6a;">
-          <em>Próximamente</em>
-        </p>
+      <div style="flex:1;">
+        <h3 style="font-size:.6rem;letter-spacing:.12em;margin-bottom:.1rem;color:var(--color-true);text-transform:uppercase;">SUBÍ TU CSV</h3>
+        <p style="font-size:.62rem;color:var(--color-text-dim);line-height:1.4;">Arrastrá el archivo o seleccionálo. Datlas lo recibe y analiza al toque.</p>
       </div>
     </div>
-  </section>
-
-  <section style="margin-top:4rem; text-align:center;">
-    <h2 style="color:#c4b5fd; margin-bottom:1rem;">Stack profesional</h2>
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; color:#6b6b8a; font-size:0.9rem;">
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Python 3.12</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">FastAPI</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Pandas</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">PostgreSQL</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Docker</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">AWS Lambda</span>
-      <span style="background:#12122a; padding:0.4rem 1rem; border-radius:6px; border:1px solid #1e1e3a;">Astro</span>
+    <div class="glass-card" style="display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;width:100%;position:relative;margin-top:.4rem;">
+      <div style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--color-true);opacity:.7;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <div style="flex:1;">
+        <h3 style="font-size:.6rem;letter-spacing:.12em;margin-bottom:.1rem;color:var(--color-true);text-transform:uppercase;">LIMPIALO</h3>
+        <p style="font-size:.62rem;color:var(--color-text-dim);line-height:1.4;">Detecta nulos, outliers y duplicados. Corregí con un click.</p>
+      </div>
     </div>
-  </section>
+    <div class="glass-card" style="display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;width:100%;margin-top:.4rem;">
+      <div style="width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--color-true);opacity:.7;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <div style="flex:1;">
+        <h3 style="font-size:.6rem;letter-spacing:.12em;margin-bottom:.1rem;color:var(--color-true);text-transform:uppercase;">EXPLORALO</h3>
+        <p style="font-size:.62rem;color:var(--color-text-dim);line-height:1.4;">Perfil completo, distribuciones, correlaciones. Automático y visual.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.6rem;margin-bottom:1rem;">
+    <div class="glass-card" style="padding:.9rem 1rem;">
+      <div style="display:flex;align-items:flex-start;gap:.7rem;">
+        <div style="width:36px;height:36px;flex-shrink:0;border-radius:8px;border:1px solid var(--color-gate-border);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--color-true);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <h3 style="font-size:.6rem;letter-spacing:.1em;margin-bottom:.1rem;color:var(--color-text);text-transform:uppercase;">AUTOMÁTICO</h3>
+          <p style="font-size:.6rem;color:var(--color-text-dim);line-height:1.4;margin:0;">Subí y ya. Datlas analiza y te muestra resultados.</p>
+        </div>
+      </div>
+    </div>
+    <div class="glass-card" style="padding:.9rem 1rem;">
+      <div style="display:flex;align-items:flex-start;gap:.7rem;">
+        <div style="width:36px;height:36px;flex-shrink:0;border-radius:8px;border:1px solid var(--color-gate-border);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--color-true);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <h3 style="font-size:.6rem;letter-spacing:.1em;margin-bottom:.1rem;color:var(--color-text);text-transform:uppercase;">INTERACTIVO</h3>
+          <p style="font-size:.6rem;color:var(--color-text-dim);line-height:1.4;margin:0;">Elegí qué corregir, explorá, decidí con datos.</p>
+        </div>
+      </div>
+    </div>
+    <div class="glass-card" style="padding:.9rem 1rem;">
+      <div style="display:flex;align-items:flex-start;gap:.7rem;">
+        <div style="width:36px;height:36px;flex-shrink:0;border-radius:8px;border:1px solid var(--color-gate-border);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;color:var(--color-true);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M12 22V12"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <h3 style="font-size:.6rem;letter-spacing:.1em;margin-bottom:.1rem;color:var(--color-text);text-transform:uppercase;">PORTÁTIL</h3>
+          <p style="font-size:.6rem;color:var(--color-text-dim);line-height:1.4;margin:0;">Docker, local, cloud. Tus datasets siempre disponibles.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass-card" style="margin-bottom:.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.4rem;">
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-true)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <h3 style="font-size:.6rem;letter-spacing:.1em;margin:0;text-transform:uppercase;">DATASETS DISPONIBLES</h3>
+      </div>
+      <span id="ds-count" class="badge badge-cyan">conectando...</span>
+    </div>
+    <div id="ds-body" style="min-height:40px;">
+      <p class="text-secondary" style="text-align:center;padding:.8rem;font-size:.6rem;">conectando con el servidor...</p>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:.8rem;">
+    <a href="/datlas/subir" class="action-btn primary sm">SUBIR NUEVO DATASET</a>
+  </div>
+
+  <style>
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+  </style>
 </Layout>
+
+<script>
+  const API = 'http://localhost:8000';
+  fetch(`${API}/api/datasets`)
+    .then(r => r.json())
+    .then(data => {
+      const raw = data.raw || [];
+      const processed = data.processed || [];
+      const body = document.getElementById('ds-body');
+      const count = document.getElementById('ds-count');
+      if (!body) return;
+
+      if (raw.length === 0) {
+        count.textContent = 'vacío';
+        count.className = 'badge badge-yellow';
+        body.innerHTML = `
+          <div style="text-align:center;padding:.5rem 0;">
+            <p style="font-size:1.5rem;margin-bottom:.3rem;opacity:.4;">📭</p>
+            <p class="text-secondary" style="font-size:.6rem;">Todavía no subiste ningún dataset.</p>
+          </div>`;
+        return;
+      }
+
+      count.textContent = `${raw.length} dataset${raw.length > 1 ? 's' : ''}`;
+      count.className = 'badge badge-green';
+
+      body.innerHTML = raw.map(d => {
+        const isClean = processed.some(p => p.filename === `clean_${d.filename}`);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;border-radius:8px;transition:background .2s var(--ease-expo);gap:.5rem;flex-wrap:wrap;background:rgba(0,0,0,0.15);margin-bottom:.25rem;"
+          onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='rgba(0,0,0,0.15)'">
+          <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+            <span style="font-weight:600;font-size:.68rem;color:var(--color-text);">${d.filename}</span>
+            <span style="color:var(--color-text-dim);font-size:.55rem;letter-spacing:.04em;">${d.size_kb} KB</span>
+            ${isClean ? '<span class="badge badge-green" style="font-size:.48rem;">limpiado</span>' : ''}
+          </div>
+          <div style="display:flex;gap:.3rem;">
+            <a href="/datlas/limpiar?file=${d.filename}" class="action-btn secondary sm">LIMPIAR</a>
+            <a href="/datlas/explorar?file=${d.filename}" class="action-btn primary sm">EXPLORAR</a>
+          </div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      const count = document.getElementById('ds-count');
+      const body = document.getElementById('ds-body');
+      if (count) { count.textContent = 'error'; count.className = 'badge badge-red'; }
+      if (body) body.innerHTML = `<p class="text-secondary" style="text-align:center;padding:.8rem;color:var(--red);font-size:.6rem;">⚠️ No se pudo conectar con la API.</p>`;
+    });
+</script>

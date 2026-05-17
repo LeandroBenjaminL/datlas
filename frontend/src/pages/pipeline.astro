@@ -1,0 +1,415 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="PIPELINE">
+  <div class="page-title">
+    <h1><span class="highlight">⚡</span> PIPELINE AUTOMÁTICO</h1>
+    <p>Subí un CSV y Datlas hace todo solo: lo sube, lo limpia, lo explora. Un solo paso.</p>
+  </div>
+
+  <div style="max-width:640px; margin:0 auto;">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-inner">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-true); opacity:.5; margin-bottom:.3rem;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <p class="dz-title">ARRASTRÁ TU CSV ACÁ</p>
+        <p class="dz-hint">o hace click para seleccionarlo</p>
+        <span class="badge badge-cyan">CSV · hasta 100 MB</span>
+      </div>
+      <input type="file" id="file-input" accept=".csv" />
+    </div>
+
+    <div id="pipeline-progress" class="pipeline-progress" style="display:none;">
+      <div class="step-track">
+        <div class="track-step" id="step-upload">
+          <span class="track-icon">📁</span>
+          <span class="track-label">Subiendo</span>
+          <span class="track-status" id="status-upload">esperando...</span>
+        </div>
+        <div class="track-connector"></div>
+        <div class="track-step" id="step-clean">
+          <span class="track-icon">🧹</span>
+          <span class="track-label">Limpiando</span>
+          <span class="track-status" id="status-clean">esperando...</span>
+        </div>
+        <div class="track-connector"></div>
+        <div class="track-step" id="step-explore">
+          <span class="track-icon">🔍</span>
+          <span class="track-label">Explorando</span>
+          <span class="track-status" id="status-explore">esperando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="results" class="results-area"></div>
+  </div>
+</Layout>
+
+<script>
+  const API = 'http://localhost:8000';
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const progress = document.getElementById('pipeline-progress');
+  const results = document.getElementById('results');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  ['dragover', 'dragleave', 'drop'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'dragover') {
+        dropzone.classList.add('dz-active');
+      } else {
+        dropzone.classList.remove('dz-active');
+      }
+      if (ev === 'drop' && e.dataTransfer.files.length > 0) {
+        startPipeline(e.dataTransfer.files[0]);
+      }
+    });
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) startPipeline(fileInput.files[0]);
+  });
+
+  function setStepStatus(stepId, status, label) {
+    const el = document.getElementById(`status-${stepId}`);
+    const track = document.getElementById(`step-${stepId}`);
+    if (el) el.textContent = label;
+    if (track) {
+      track.className = `track-step ${status}`;
+    }
+  }
+
+  async function startPipeline(file) {
+    if (!file.name.endsWith('.csv')) {
+      results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center; padding:1.5rem;">
+        <p style="font-size:1.8rem; margin-bottom:.3rem;">❌</p>
+        <p style="color:var(--red); font-weight:600; font-size:.72rem;">SOLO ARCHIVOS .CSV</p>
+        <button class="action-btn secondary sm mt-1" onclick="location.reload()">VOLVER</button>
+      </div>`;
+      return;
+    }
+
+    dropzone.style.display = 'none';
+    progress.style.display = 'block';
+    results.innerHTML = '';
+
+    setStepStatus('upload', 'active', 'subiendo...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API}/api/pipeline/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Error del servidor' }));
+        progress.style.display = 'none';
+        results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center; padding:1.5rem;">
+          <p style="font-size:1.8rem; margin-bottom:.3rem;">❌</p>
+          <p style="color:var(--red); font-weight:600; font-size:.72rem;">${err.detail || 'Error en el pipeline'}</p>
+          <button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button>
+        </div>`;
+        return;
+      }
+
+      setStepStatus('upload', 'done', '✅ listo');
+      setStepStatus('clean', 'active', 'limpiando...');
+
+      const data = await res.json();
+
+      setStepStatus('clean', 'done', '✅ listo');
+      setStepStatus('explore', 'done', '✅ listo');
+
+      setTimeout(() => renderResults(data), 300);
+      window.__pipelineData = data;
+    } catch {
+      progress.style.display = 'none';
+      results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center; padding:1.5rem;">
+        <p style="font-size:1.8rem; margin-bottom:.3rem;">⚠️</p>
+        <p style="color:var(--red); font-weight:600; font-size:.72rem;">ERROR DE CONEXIÓN</p>
+        <p class="text-secondary" style="font-size:.62rem;">¿La API está corriendo en localhost:8000?</p>
+        <button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button>
+      </div>`;
+    }
+  }
+
+  function renderResults(data) {
+    const ui = data.upload_info || {};
+    const cr = data.cleaning_result || {};
+    const er = data.explore_report || {};
+    const p = er.profile || {};
+    const corr = er.correlations || {};
+    const dist = er.distributions || {};
+    const ns = er.null_summary || {};
+
+    let html = `
+      <div class="glass-card result-summary fade-in">
+        <div class="text-center" style="margin-bottom:1rem;">
+          <p style="font-size:2rem; margin-bottom:.3rem;">✅</p>
+          <h2 style="font-size:1rem; font-weight:800; letter-spacing:.04em;">PIPELINE COMPLETADO</h2>
+          <p class="text-secondary" style="font-size:.62rem;">${ui.filename} — todo en un solo paso</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="sum-value">${ui.rows}</span>
+            <span class="sum-label">Filas originales</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-value" style="color:var(--red);">-${cr.rows_removed}</span>
+            <span class="sum-label">Filas limpiadas</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-value" style="color:var(--green);">${cr.new_shape ? cr.new_shape[0] : '?'}</span>
+            <span class="sum-label">Filas finales</span>
+          </div>
+          <div class="summary-card">
+            <span class="sum-value">${corr.pairs ? corr.pairs.length : 0}</span>
+            <span class="sum-label">Correlaciones</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (cr.applied_fixes && cr.applied_fixes.length > 0) {
+      html += `<div class="glass-card mb-2 fade-in">
+        <h3>CORRECCIONES APLICADAS</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:.25rem; margin-top:.4rem;">
+          ${cr.applied_fixes.map(f => `<span class="fix-tag">${f}</span>`).join('')}
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="glass-card mb-2 fade-in text-center">
+        <p style="font-size:1.2rem; margin-bottom:.15rem;">✨</p>
+        <p class="text-green" style="font-size:.72rem;">Dataset impecable, no necesitó correcciones.</p>
+      </div>`;
+    }
+
+    const numCols = Object.entries(p.columns || {}).filter(([_, info]) => info.type !== 'object');
+    const catCols = Object.entries(p.columns || {}).filter(([_, info]) => info.type === 'object');
+
+    html += `<div class="glass-card mb-2 fade-in">
+      <h3>PERFIL DEL DATASET</h3>
+      <div style="display:flex; gap:.8rem; flex-wrap:wrap; margin-top:.4rem;">
+        <span class="badge badge-cyan">${numCols.length} numéricas</span>
+        <span class="badge badge-yellow">${catCols.length} categóricas</span>
+        <span class="badge ${ns.total_nulls > 0 ? 'badge-yellow' : 'badge-green'}">${ns.total_nulls > 0 ? ns.total_nulls + ' nulos' : 'Sin nulos'}</span>
+        <span class="badge badge-cyan">${p.shape ? p.shape.rows.toLocaleString() : '?'} filas</span>
+      </div>
+    </div>`;
+
+    if (corr.pairs && corr.pairs.length > 0) {
+      html += `<div class="glass-card mb-2 fade-in">
+        <h3>CORRELACIONES PRINCIPALES</h3>
+        <div style="overflow-x:auto; margin-top:.4rem;"><table>
+          <tr><th>X</th><th>Y</th><th style="text-align:right;">Valor</th><th>Relación</th></tr>`;
+      for (const cp of corr.pairs.slice(0, 5)) {
+        const color = cp.correlation >= 0 ? 'var(--green)' : 'var(--red)';
+        const label = cp.correlation >= 0.7 ? 'Fuerte +' : cp.correlation <= -0.7 ? 'Fuerte −' : cp.correlation >= 0.4 ? 'Moderada +' : cp.correlation <= -0.4 ? 'Moderada −' : 'Débil';
+        html += `<tr>
+          <td>${cp.x}</td>
+          <td>${cp.y}</td>
+          <td style="text-align:right; color:${color}; font-weight:600;">${cp.correlation.toFixed(3)}</td>
+          <td style="font-size:.62rem;">${label}</td>
+        </tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+
+    if (dist && Object.keys(dist).length > 0) {
+      html += `<div class="glass-card mb-2 fade-in">
+        <h3>DISTRIBUCIONES</h3>
+        <div id="chart-area" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:.8rem; margin-top:.4rem;"></div>
+      </div>`;
+    }
+
+    html += `
+      <div class="glass-card fade-in">
+        <div class="btn-group" style="justify-content:center;">
+          <a href="/datlas/explorar?file=clean_${ui.filename}" class="action-btn primary sm">VER EXPLORACIÓN</a>
+          <a href="/api/download/clean_${ui.filename}" class="action-btn success sm" download>DESCARGAR CSV</a>
+          <button class="action-btn secondary sm" onclick="location.reload()">NUEVO PIPELINE</button>
+        </div>
+      </div>
+    `;
+
+    results.innerHTML = html;
+    setTimeout(renderCharts, 300);
+  }
+
+  function renderCharts() {
+    const chartArea = document.getElementById('chart-area');
+    if (!chartArea) return;
+    chartArea.innerHTML = '<p class="text-secondary" style="font-size:.65rem;">Cargando gráficos...</p>';
+
+    if (!window.Chart) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = drawCharts;
+      document.head.appendChild(s);
+    } else {
+      drawCharts();
+    }
+  }
+
+  function drawCharts() {
+    const container = document.getElementById('chart-area');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const pd = window.__pipelineData;
+    const dist = pd?.explore_report?.distributions || {};
+    const cols = Object.keys(dist);
+    if (cols.length === 0) { container.innerHTML = '<p class="text-secondary" style="font-size:.65rem;">Sin columnas numéricas.</p>'; return; }
+
+    for (const col of cols) {
+      const d = dist[col];
+      const id = `pipe-ct-${col.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<h4 style="font-size:.62rem; font-weight:600; margin-bottom:.2rem;">${col}</h4>
+        <div style="position:relative; height:130px;"><canvas id="${id}"></canvas></div>`;
+      container.appendChild(wrap);
+      setTimeout(() => {
+        const ctx = document.getElementById(id)?.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: d.edges.slice(0, -1).map((e, i) => `${e.toFixed(1)}–${d.edges[i+1].toFixed(1)}`),
+            datasets: [{
+              label: col, data: d.counts,
+              backgroundColor: 'rgba(0, 240, 255, 0.2)',
+              borderColor: 'rgba(0, 240, 255, 0.4)',
+              borderWidth: 1, borderRadius: 3,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#5a5a72', font: { size: 8 }, maxRotation: 45 }, grid: { color: 'rgba(0,240,255,0.04)' } },
+              y: { ticks: { color: '#5a5a72', font: { size: 8 } }, grid: { color: 'rgba(0,240,255,0.04)' }, beginAtZero: true },
+            },
+          },
+        });
+      }, 50);
+    }
+  }
+</script>
+
+<style>
+  .dropzone {
+    border: 1.5px dashed var(--border-glass);
+    border-radius: var(--radius);
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px) saturate(1.2);
+    cursor: pointer;
+    transition: all .3s var(--ease-expo);
+    position: relative;
+    overflow: hidden;
+  }
+  .dropzone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.04), transparent 70%);
+    opacity: 0;
+    transition: opacity .3s var(--ease-expo);
+  }
+  .dropzone:hover::before, .dropzone.dz-active::before { opacity: 1; }
+  .dropzone input { display: none; }
+  .dropzone-inner {
+    position: relative;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+  }
+  .dz-title { color: var(--color-text); font-weight: 600; font-size: .75rem; letter-spacing: .06em; }
+  .dz-hint { color: var(--color-text-dim); font-size: .62rem; }
+  .dz-active {
+    border-color: rgba(0, 240, 255, 0.2);
+    background: rgba(0, 240, 255, 0.04);
+  }
+
+  .pipeline-progress {
+    margin: 1.2rem 0;
+    padding: 1rem;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px) saturate(1.2);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius);
+  }
+  .step-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  .track-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .15rem;
+    padding: .4rem .8rem;
+    border-radius: 8px;
+    min-width: 70px;
+  }
+  .track-icon { font-size: 1.2rem; }
+  .track-label { font-size: .6rem; font-weight: 600; color: var(--color-text-dim); letter-spacing: .06em; }
+  .track-status { font-size: .5rem; color: var(--color-text-dim); }
+  .track-step.active .track-icon { animation: pulse 1s ease-in-out infinite; }
+  .track-step.active .track-status { color: var(--color-true); font-weight: 600; }
+  .track-step.done .track-status { color: var(--green); font-weight: 600; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .track-connector {
+    width: 24px;
+    height: 1px;
+    background: var(--color-text-dim);
+    opacity: .3;
+    flex-shrink: 0;
+  }
+
+  .results-area { margin-top: .8rem; }
+
+  .result-summary { border-color: rgba(0, 240, 255, 0.12); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: .5rem;
+  }
+  .summary-card {
+    text-align: center;
+    padding: .6rem;
+    background: rgba(0, 240, 255, 0.04);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+  }
+  .sum-value { font-size: 1.3rem; font-weight: 800; color: var(--color-true); display: block; }
+  .sum-label { font-size: .48rem; color: var(--color-text-dim); letter-spacing: .1em; text-transform: uppercase; display: block; }
+
+  .fix-tag {
+    display: inline-block;
+    padding: .08rem .4rem;
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 20px;
+    font-size: .52rem;
+  }
+
+  @media (max-width: 600px) {
+    .step-track { flex-wrap: wrap; gap: .2rem; }
+    .track-connector { width: 12px; }
+    .track-step { min-width: 50px; padding: .25rem .4rem; }
+  }
+</style>
