@@ -67,6 +67,18 @@ services:
       - db
     restart: unless-stopped
 
+  # ── Frontend: Astro (Nginx) ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: datlas-frontend
+    ports:
+      - "${FRONTEND_PORT:-4321}:4321"
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   pgdata:
   pgadmin_data:

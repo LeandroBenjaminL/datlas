@@ -190,8 +190,22 @@ const { title = 'Datlas' } = Astro.props;
 
       /* ── Responsive ── */
       @media (max-width: 600px) {
+        html { font-size: 16px; }
         .hero h1 { font-size: 2.2rem; }
-        header { flex-direction: column; text-align: center; }
+        .hero p { font-size: 1rem; }
+        header { flex-direction: column; text-align: center; padding: 0.8rem 1rem; }
+        nav { justify-content: center; gap: 1rem; }
+        main { padding: 1rem; }
+        .grid-3 { grid-template-columns: 1fr; }
+        .btn { width: 100%; text-align: center; }
+        .hero { padding: 2rem 1rem; }
+        table { font-size: 0.75rem !important; }
+        table td, table th { padding: 0.3rem !important; }
+      }
+
+      @media (min-width: 601px) and (max-width: 1024px) {
+        .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        .hero h1 { font-size: 2.8rem; }
       }
     </style>
   </head>

@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = '';
 ---
 
 <Layout title="Subir dataset">
@@ -16,7 +16,7 @@ const API_BASE = 'http://localhost:8000';
     <div id="dropzone" style="border:2px dashed #2a2a45; border-radius:12px; padding:3rem 2rem; text-align:center; background:#12122a; cursor:pointer; transition: border-color 0.2s;">
       <p style="font-size:3rem; margin-bottom:1rem;" id="drop-icon">📂</p>
       <p style="color:#94a3b8; margin-bottom:0.5rem;" id="drop-text">Arrastrá tu archivo acá</p>
-      <p style="color:#4a4a6a; font-size:0.85rem;">CSV · Máx 100MB</p>
+      <p style="color:#4a4a6a; font-size:0.85rem;" id="drop-hint">CSV · Máx 100MB</p>
       <input type="file" id="file-input" accept=".csv" style="display:none;" />
     </div>
 
@@ -29,7 +29,7 @@ const API_BASE = 'http://localhost:8000';
 </Layout>
 
 <script>
-  const API = 'http://localhost:8000';
+  const API = '';
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('file-input');
   const dropIcon = document.getElementById('drop-icon');
