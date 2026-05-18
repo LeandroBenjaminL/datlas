@@ -16,7 +16,7 @@ psycopg2-binary==2.9.10    # PostgreSQL driver
 alembic==1.14.1            # Migraciones
 
 # ── API ──
-python-multipart==0.0.19   # Upload de archivos
+python-multipart==0.0.29   # Upload de archivos
 httpx==0.28.1              # Cliente HTTP para tests
 
 # ── Visualización (backend genera charts) ──
