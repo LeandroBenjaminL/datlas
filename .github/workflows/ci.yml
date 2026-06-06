@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
+      - uses: actions/checkout@v6
       - name: Check PR size against review budget
         env:
           GH_TOKEN: ${{ github.token }}

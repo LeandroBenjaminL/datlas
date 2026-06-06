@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     DEBUG: bool = True
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
     API_KEY: str = ""  # Empty = no auth (dev mode). Set in production.
 
     # ── Security ──

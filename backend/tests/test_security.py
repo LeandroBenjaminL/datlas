@@ -33,13 +33,21 @@ class TestAuthMiddleware:
 
     @pytest.mark.asyncio
     async def test_protected_path_with_invalid_key_returns_401(self, public_client):
-        r = await public_client.post("/api/clean/analyze", json={"filename": "test.csv"}, headers={"X-API-Key": "wrong"})
+        r = await public_client.post(
+            "/api/clean/analyze",
+            json={"filename": "test.csv"},
+            headers={"X-API-Key": "wrong"},
+        )
         assert r.status_code == 401
 
     @pytest.mark.asyncio
     async def test_protected_path_with_valid_key_succeeds(self, public_client):
         csv_path = Path(__file__).parent / "data" / "test.csv"
-        r = await public_client.post("/api/upload", files={"file": ("test.csv", csv_path.read_bytes(), "text/csv")}, headers={"X-API-Key": "test-secret-key-2026"})
+        r = await public_client.post(
+            "/api/upload",
+            files={"file": ("test.csv", csv_path.read_bytes(), "text/csv")},
+            headers={"X-API-Key": "test-secret-key-2026"},
+        )
         assert r.status_code == 200
 
     @pytest.mark.asyncio
@@ -115,7 +123,10 @@ class TestFileSizeLimits:
         monkeypatch.setattr(app.config.settings, "MAX_UPLOAD_SIZE_MB", 0)
         monkeypatch.setattr(app.config.settings, "API_KEY", "")
         csv_path = Path(__file__).parent / "data" / "test.csv"
-        r = await public_client.post("/api/pipeline/upload", files={"file": ("big.csv", csv_path.read_bytes(), "text/csv")})
+        r = await public_client.post(
+            "/api/pipeline/upload",
+            files={"file": ("big.csv", csv_path.read_bytes(), "text/csv")},
+        )
         assert r.status_code == 400
 
 

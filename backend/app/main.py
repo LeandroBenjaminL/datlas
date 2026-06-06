@@ -18,6 +18,7 @@ from app.config import settings
 from app.db.database import engine, init_db
 from app.logging import logger
 from app.middleware.auth import AuthMiddleware
+from app.middleware.logging import RequestIDMiddleware
 from app.routers import clean, explore, export, pipeline, upload
 
 
@@ -88,6 +89,9 @@ if settings.API_KEY:
         return app.openapi_schema
 
     app.openapi = custom_openapi
+
+# ── Request ID / Logging ──
+app.add_middleware(RequestIDMiddleware)
 
 # ── Rate Limiting ──
 limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT])
