@@ -23,8 +23,8 @@ services:
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
-      - ./backend:/app          # código live-reload en dev
-      - ./data:/app/data         # datasets compartidos
+      - ./backend:/app # código live-reload en dev
+      - ./data:/app/data # datasets compartidos
     env_file:
       - .env
     depends_on:
@@ -44,9 +44,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-datlas_secreto_2026}
       POSTGRES_DB: ${POSTGRES_DB:-datlas_db}
     volumes:
-      - pgdata:/var/lib/postgresql/data    # datos persistentes
+      - pgdata:/var/lib/postgresql/data # datos persistentes
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-datlas} -d ${POSTGRES_DB:-datlas_db}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-datlas} -d ${POSTGRES_DB:-datlas_db}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
