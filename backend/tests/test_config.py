@@ -4,7 +4,6 @@ Validates default values, environment variable overrides,
 and computed properties (database_url, database_url_sync).
 """
 
-
 import pytest
 from pydantic import ValidationError
 
