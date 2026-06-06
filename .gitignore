@@ -45,6 +45,9 @@ data/raw/*
 data/processed/*
 !data/.gitkeep
 
+# Backend data (datos de prueba generados por tests)
+backend/data/
+
 # Python
 *.egg-info/
 .coverage
