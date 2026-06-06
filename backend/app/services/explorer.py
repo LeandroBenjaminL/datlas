@@ -182,10 +182,12 @@ class DataExplorer:
         for col in self.df.columns:
             n = int(self.df[col].isnull().sum())
             if n > 0:
-                columns[col] = {"count": n, "pct": round(n / self.shape[0] * 100, 1)}
+                pct = round(n / self.shape[0] * 100, 1) if self.shape[0] > 0 else 0.0
+                columns[col] = {"count": n, "pct": pct}
+        overall_pct = round(total_nulls / total_cells * 100, 2) if total_cells > 0 else 0.0
         return {
             "total_nulls": total_nulls,
-            "overall_pct": round(total_nulls / total_cells * 100, 2),
+            "overall_pct": overall_pct,
             "columns": columns,
         }
 

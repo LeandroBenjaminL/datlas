@@ -120,9 +120,10 @@ class DataCleaner:
                 col_dupes = dupe_df.duplicated(subset=[col], keep=False).sum()
                 if col_dupes > 0:
                     partial_cols[col] = int(col_dupes)
+        duplicate_pct = round(total_dupes / len(self.df) * 100, 2) if len(self.df) > 0 else 0.0
         return {
             "total_duplicate_rows": int(total_dupes),
-            "duplicate_percent": round(total_dupes / len(self.df) * 100, 2),
+            "duplicate_percent": duplicate_pct,
             "columns_with_duplicates": partial_cols,
         }
 
