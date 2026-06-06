@@ -25,8 +25,8 @@ testing:
 ci:
   provider: github-actions
   workflows:
-    - .github/workflows/ci.yml       # lint + test + frontend build
-    - .github/workflows/deploy.yml   # GitHub Pages (frontend)
+    - .github/workflows/ci.yml # lint + test + frontend build
+    - .github/workflows/deploy.yml # GitHub Pages (frontend)
 
 # ── Deploy ───────────────────────────────────────────────
 deploy:
@@ -36,19 +36,19 @@ deploy:
   backend:
     platform: render
     blueprint: render.yaml
-    url: https://datlas-api.onrender.com  # TBC
+    url: https://datlas-api.onrender.com # TBC
 
 # ── Architecture ─────────────────────────────────────────
 architecture:
-  backend: backend/           # FastAPI + Pandas + PostgreSQL
-  frontend: frontend/         # Astro 6 static site
+  backend: backend/ # FastAPI + Pandas + PostgreSQL
+  frontend: frontend/ # Astro 6 static site
   data_pipeline:
     - upload   (CSV → Pandas)
     - clean    (outliers, nulls, duplicates)
     - explore  (metadata summary)
   docker:
-    compose: docker-compose.yml   # dev only (API + PG + pgAdmin)
-    prod: backend/Dockerfile      # Render production image
+    compose: docker-compose.yml # dev only (API + PG + pgAdmin)
+    prod: backend/Dockerfile # Render production image
 
 # ── SDD Preferences (session preflight) ──────────────────
 sdd:
