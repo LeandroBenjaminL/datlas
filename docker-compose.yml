@@ -17,8 +17,8 @@ services:
   # ── Backend: FastAPI + Pandas ──
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: datlas-api
     ports:
       - "${API_PORT:-8000}:8000"

@@ -6,7 +6,6 @@ services:
     plan: free
     branch: main
     dockerfilePath: backend/Dockerfile
-    dockerContext: backend
     envVars:
       - key: DEBUG
         value: "false"
