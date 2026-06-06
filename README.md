@@ -15,7 +15,7 @@ Datlas es una **arquitectura profesional** para limpieza y análisis de datos. S
 | **Pandas** | 2.2+ | El estándar de la industria para manipulación de datos |
 | **PostgreSQL** | 16 | Window functions, JSONB, CTEs — ideal para datos analíticos |
 | **Docker** | latest | Mismo entorno en dev y prod. "En mi máquina funciona" no existe |
-| **Astro** | 5 | 0KB JS por defecto, islas de interactividad, build estático |
+| **Astro** | 6 | 0KB JS por defecto, islas de interactividad, build estático |
 | **pgAdmin** | latest | Interfaz visual para explorar la DB sin tocar terminal |
 | **Verity Engine** | — | Editor visual de circuitos lógicos adaptado para data pipelines |
 | **AWS Lambda** | — | Serverless: pagás solo cuando se usa (futuro) |
@@ -75,15 +75,18 @@ Cada tecnología se eligió con un porqué documentado en [`docs/arquitectura.md
 │  Todo corre en containers. No instalás nada en tu máquina. │
 └──────────────────────────────────────────────────────────┘
                           │
-                          │ deploy (futuro)
+                          │ deploy
                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│  PRODUCCIÓN (AWS Free Tier)                               │
+│  PRODUCCIÓN                                               │
 │                                                           │
 │  GitHub Pages ───► Frontend Astro (estático)             │
-│  API Gateway  ───► Lambda (FastAPI via Mangum)           │
-│  RDS ────────────► PostgreSQL                             │
-│  S3 ─────────────► Datasets y archivos                    │
+│  Render ─────────► Backend FastAPI (Docker)              │
+│                                                           │
+│  URLs:                                                    │
+│  🌐 Frontend  https://leandrobenjaminl.github.io/datlas  │
+│  🔌 API       https://datlas-api.onrender.com            │
+│  📚 Docs      https://datlas-api.onrender.com/docs       │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -240,11 +243,12 @@ datlas/
 - ✅ **Fase 0**: Docker + PostgreSQL + FastAPI esqueleto
 - ✅ **Fase 0.5**: Frontend Astro + GitHub Pages
 - ✅ **Fase 1**: Perfil A — limpieza de datos (nulos, outliers, duplicados)
-- ⬜ **Fase 2**: Perfil B — exploración y profiling
-- ⬜ **Fase 3**: Perfil C — pipeline completo + exportación
-- ✅ **Fase 3.5**: Flow — editor visual de pipelines con Verity Engine (`/datlas/flow`)
-- ⬜ **Fase 4**: Deploy a AWS Lambda + API Gateway
-- ⬜ **Fase 5**: CI/CD con GitHub Actions (tests automáticos)
+- ✅ **Fase 2**: Perfil B — exploración y profiling
+- ✅ **Fase 3**: Perfil C — pipeline completo + exportación
+- ✅ **Fase 4**: Deploy a producción (Render + GitHub Pages)
+- ✅ **Fase 5**: CI/CD con GitHub Actions (tests automáticos)
+- ⬜ **Fase 6**: Schemas Pydantic con validación + auto-documentación
+- ⬜ **Fase 7**: Property-based testing con Hypothesis
 
 ---
 
