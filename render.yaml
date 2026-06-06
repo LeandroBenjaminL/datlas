@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: datlas-api
+    runtime: docker
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    envVars:
+      - key: DEBUG
+        value: "false"
