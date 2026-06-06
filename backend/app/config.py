@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # ── PostgreSQL ──
+    DATABASE_URL: str | None = None  # Render inyecta esto automáticamente
+    POSTGRES_HOST: str = "localhost"  # "db" en docker-compose, host real en Render
     POSTGRES_USER: str = "datlas"
     POSTGRES_PASSWORD: str = "datlas_secreto_2026"
     POSTGRES_DB: str = "datlas_db"
@@ -30,15 +32,30 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        """Construye la URL de conexión a PostgreSQL."""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@db:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        """Construye la URL de conexión a PostgreSQL.
+
+        Prioridad:
+        1. DATABASE_URL (Render la inyecta automáticamente)
+        2. Construida desde POSTGRES_HOST + credenciales (docker-compose usa "db")
+        """
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        return (
+            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
     @property
     def database_url_sync(self) -> str:
-        """URL para SQLAlchemy sincrónico (Alembic usa esta)."""
+        """URL para SQLAlchemy sincrónico (Alembic usa esta).
+
+        Misma prioridad que database_url.
+        """
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
     model_config = {

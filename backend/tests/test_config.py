@@ -42,39 +42,51 @@ class TestSettingsDefaults:
 
 
 class TestDatabaseUrlProperty:
-    """The database_url property constructs the async connection URL."""
+    """The database_url property constructs the connection URL."""
 
     def test_default_database_url(self):
         s = Settings()
         url = s.database_url
         assert url.startswith("postgresql://")
         assert "datlas:datlas_secreto_2026" in url
-        assert "@db:5432/datlas_db" in url
+        assert "@localhost:5432/datlas_db" in url
 
     def test_database_url_with_custom_values(self):
         s = Settings(
             POSTGRES_USER="admin",
             POSTGRES_PASSWORD="pass123",
             POSTGRES_DB="prod_db",
+            POSTGRES_HOST="db-prod.internal",
             POSTGRES_PORT=5433,
         )
         assert "admin:pass123" in s.database_url
-        assert "@db:5433/prod_db" in s.database_url
+        assert "@db-prod.internal:5433/prod_db" in s.database_url
+
+    def test_database_url_uses_datbase_url_env(self):
+        """When DATABASE_URL is set (Render), it takes priority."""
+        s = Settings(DATABASE_URL="postgresql://render:secret@host.rds.amazonaws.com:5432/mydb")
+        assert s.database_url == "postgresql://render:secret@host.rds.amazonaws.com:5432/mydb"
+        # POSTGRES_HOST and other vars are ignored when DATABASE_URL is present
 
 
 class TestDatabaseUrlSync:
-    """The sync URL points to localhost for Alembic migrations."""
+    """The sync URL points to the same host by default."""
 
     def test_sync_url_uses_localhost(self):
         s = Settings()
         assert "@localhost:" in s.database_url_sync
         assert "datlas_db" in s.database_url_sync
 
-    def test_sync_url_differs_from_async(self):
+    def test_sync_url_equals_async_by_default(self):
+        """Both URLs use the same logic — only differ when DATABASE_URL is set."""
         s = Settings()
-        assert s.database_url_sync != s.database_url
-        assert "localhost" in s.database_url_sync
-        assert "db:" in s.database_url
+        assert s.database_url_sync == s.database_url
+
+    def test_sync_url_can_differ_with_datbase_url(self):
+        """When DATABASE_URL is set, sync URL follows it too."""
+        s = Settings(DATABASE_URL="postgresql://cloud:secret@prod.db:5432/app")
+        assert s.database_url_sync == s.database_url
+        assert "prod.db" in s.database_url_sync
 
 
 class TestEnvVarOverride:

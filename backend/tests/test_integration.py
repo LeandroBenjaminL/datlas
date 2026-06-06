@@ -1,19 +1,19 @@
-"""Integration tests — real API calls via httpx."""
+"""Integration tests — real API calls via httpx with test database."""
 
 from pathlib import Path
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
-
 FIXTURE_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture
-def client():
-    transport = ASGITransport(app=app)
-    return AsyncClient(transport=transport, base_url="http://test")
+async def client(app_with_db):
+    """Async HTTP client bound to the FastAPI app with DB overrides."""
+    transport = ASGITransport(app=app_with_db)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
 
 
 @pytest.mark.asyncio
@@ -76,6 +76,26 @@ async def test_datasets(client):
     data = r.json()
     assert "raw" in data
     assert "processed" in data
+
+
+@pytest.mark.asyncio
+async def test_dataset_analyses(client):
+    """New endpoint: GET /api/datasets/{id}/analyses."""
+    # First ensure a dataset exists
+    csv_path = FIXTURE_DIR / "test.csv"
+    await client.post("/api/upload", files={"file": ("test.csv", csv_path.read_bytes(), "text/csv")})
+
+    r = await client.get("/api/datasets/1/analyses")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["filename"] == "test.csv"
+    assert "analyses" in data
+
+
+@pytest.mark.asyncio
+async def test_dataset_analyses_not_found(client):
+    r = await client.get("/api/datasets/999/analyses")
+    assert r.status_code == 404
 
 
 @pytest.mark.asyncio
