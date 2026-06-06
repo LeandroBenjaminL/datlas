@@ -1,6 +1,5 @@
 """Property-based tests with hypothesis — fuzz DataCleaner + DataExplorer."""
 
-import io
 from pathlib import Path
 
 import numpy as np
@@ -12,26 +11,12 @@ from app.services.cleaner import DataCleaner
 from app.services.explorer import DataExplorer
 
 
-def dataframe_to_csv(df: pd.DataFrame) -> str:
-    buf = io.StringIO()
-    df.to_csv(buf, index=False)
-    return buf.getvalue()
-
-
 def csv_from_dataframe(df: pd.DataFrame) -> str:
     import tempfile
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tmp:
         df.to_csv(tmp.name, index=False)
         return tmp.name
-
-
-# ── Column name strategies ──
-col_name = st.text(
-    alphabet=st.characters(whitelist_categories=("L", "N", "Punctuation", "Sc")),
-    min_size=1,
-    max_size=20,
-).filter(lambda x: not x.startswith("_") and x.strip())
 
 
 # ── DataCleaner ────────────────────────────────────
@@ -102,8 +87,8 @@ class TestDataExplorerHypothesis:
         Path(path).unlink(missing_ok=True)
 
     @given(
-        n_rows=st.integers(min_value=5, max_value=50),
-        outlier_scale=st.floats(min_value=5.0, max_value=100.0),
+        n_rows=st.integers(min_value=10, max_value=50),
+        outlier_scale=st.floats(min_value=15.0, max_value=100.0),
     )
     @settings(max_examples=10)
     def test_outliers_detected(self, n_rows, outlier_scale):
@@ -113,6 +98,8 @@ class TestDataExplorerHypothesis:
         path = csv_from_dataframe(df)
         cleaner = DataCleaner(path)
         outliers = cleaner.detect_outliers()
-        if "x" in outliers:
-            assert outliers["x"]["outlier_count"] >= 1
+        # With n_rows >= 10 and outlier_scale >= 15, the IQR method
+        # should reliably detect the extreme value as an outlier
+        assert "x" in outliers, f"Expected outlier in column 'x' (n_rows={n_rows}, outlier_scale={outlier_scale})"
+        assert outliers["x"]["outlier_count"] >= 1
         Path(path).unlink(missing_ok=True)
