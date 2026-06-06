@@ -7,7 +7,6 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.db.crud import create_dataset, get_dataset_by_filename, save_analysis
 from app.db.database import get_db
 from app.schemas import PipelineResponse, PipelineRunRequest
@@ -38,14 +37,6 @@ async def pipeline_upload(file: UploadFile = File(...), db: Session = Depends(ge
         raise HTTPException(400, "Solo archivos .csv")
 
     content = await file.read()
-    size_mb = len(content) / (1024 * 1024)
-
-    if size_mb > settings.MAX_UPLOAD_SIZE_MB:
-        raise HTTPException(
-            400,
-            f"El archivo ({size_mb:.1f}MB) excede el límite de {settings.MAX_UPLOAD_SIZE_MB}MB",
-        )
-
     DATA_RAW.mkdir(parents=True, exist_ok=True)
 
     try:

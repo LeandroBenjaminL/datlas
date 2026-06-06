@@ -11,7 +11,6 @@ import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.db.crud import create_dataset
 from app.db.database import get_db
 from app.schemas import UploadResponse
@@ -48,14 +47,6 @@ async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
         raise HTTPException(400, "Solo archivos .csv")
 
     content = await file.read()
-    size_mb = len(content) / (1024 * 1024)
-
-    if size_mb > settings.MAX_UPLOAD_SIZE_MB:
-        raise HTTPException(
-            400,
-            f"El archivo ({size_mb:.1f}MB) excede el límite de {settings.MAX_UPLOAD_SIZE_MB}MB",
-        )
-
     filepath = DATA_DIR / file.filename
     filepath.write_bytes(content)
 
