@@ -1,5 +1,26 @@
 # Testing Skill — Datlas
 
+## 🔴 REGLA DE ORO — PRE-PUSH
+
+**NUNCA pushear sin verificar que los tests pasan.**
+
+Antes de `git push`, SIEMPRE ejecutar localmente:
+```bash
+cd backend && python -m pytest tests/ -v --tb=short
+```
+
+Si los tests fallan localmente, arreglalos ANTES de commitear.
+Si no podés correr tests localmente (dependencias, SO, etc.), correr en Docker:
+```bash
+docker run --rm -v "$(pwd)/backend":/app -w /app python:3.13-slim \
+  bash -c "pip install -q -r requirements.txt && python -m pytest tests/ -v --tb=short"
+```
+
+Un push con tests rotos = rollback inmediato y fix prioritario.
+No hay excepciones.
+
+---
+
 ## Filosofía
 
 > Los tests no están para comprobar que el código funciona (el "camino feliz"),
