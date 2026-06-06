@@ -8,6 +8,8 @@ Provides the DataCleaner class that wraps a Pandas DataFrame and offers:
 - Configurable cleaning pipeline
 """
 
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -164,7 +166,9 @@ class DataCleaner:
         if sample.empty:
             return None
         try:
-            pd.to_datetime(sample)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                pd.to_datetime(sample)
             if self.df[col].dtype != "datetime64[ns]":
                 return "datetime"
         except (ValueError, TypeError):
