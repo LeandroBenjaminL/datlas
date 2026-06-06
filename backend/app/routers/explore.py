@@ -6,8 +6,9 @@ on an uploaded dataset: profile, distributions, correlations, and statistics.
 
 from pathlib import Path
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, HTTPException
 
+from app.schemas import ExploreAnalyzeRequest, ExploreAnalyzeResponse
 from app.services.explorer import DataExplorer
 
 router = APIRouter(prefix="/api", tags=["explore"])
@@ -20,8 +21,8 @@ except (OSError, PermissionError):
     DATA_RAW.mkdir(parents=True, exist_ok=True)
 
 
-@router.post("/explore/analyze")
-async def explore_analyze(filename: str = Body(..., embed=True)):
+@router.post("/explore/analyze", response_model=ExploreAnalyzeResponse)
+async def explore_analyze(body: ExploreAnalyzeRequest):
     """Run a full exploratory analysis on an uploaded dataset.
 
     Returns a comprehensive report with:
@@ -40,9 +41,9 @@ async def explore_analyze(filename: str = Body(..., embed=True)):
         HTTPException 404: If the file does not exist.
         HTTPException 400: If the file is not a .csv.
     """
-    filepath = DATA_RAW / filename
+    filepath = DATA_RAW / body.filename
     if not filepath.exists():
-        raise HTTPException(404, f"File {filename} not found. Upload it first via POST /api/upload")
+        raise HTTPException(404, f"File {body.filename} not found. Upload it first via POST /api/upload")
     if filepath.suffix != ".csv":
         raise HTTPException(400, "Only .csv files supported")
 
@@ -50,7 +51,7 @@ async def explore_analyze(filename: str = Body(..., embed=True)):
     report = explorer.analyze()
 
     return {
-        "filename": filename,
+        "filename": body.filename,
         "report": report,
         "message": "Exploration complete.",
     }

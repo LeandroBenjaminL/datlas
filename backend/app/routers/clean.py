@@ -6,8 +6,14 @@ and POST /api/clean/apply to apply configurable fixes on an uploaded dataset.
 
 from pathlib import Path
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, HTTPException
 
+from app.schemas import (
+    CleanAnalyzeRequest,
+    CleanAnalyzeResponse,
+    CleanApplyRequest,
+    CleanApplyResponse,
+)
 from app.services.cleaner import DataCleaner
 
 router = APIRouter(prefix="/api", tags=["clean"])
@@ -24,8 +30,8 @@ except (OSError, PermissionError):
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
-@router.post("/clean/analyze")
-async def analyze(filename: str = Body(..., embed=True)):
+@router.post("/clean/analyze", response_model=CleanAnalyzeResponse)
+async def analyze(body: CleanAnalyzeRequest):
     """Analyze a dataset and detect data quality issues.
 
     Scans the file for null values, outliers (IQR method), duplicate rows,
@@ -41,9 +47,9 @@ async def analyze(filename: str = Body(..., embed=True)):
         HTTPException 404: If the file does not exist in data/raw/.
         HTTPException 400: If the file is not a .csv.
     """
-    filepath = DATA_RAW / filename
+    filepath = DATA_RAW / body.filename
     if not filepath.exists():
-        raise HTTPException(404, f"File {filename} not found. Upload it first via POST /api/upload")
+        raise HTTPException(404, f"File {body.filename} not found. Upload it first via POST /api/upload")
     if not filepath.suffix == ".csv":
         raise HTTPException(400, "Only .csv files supported")
 
@@ -51,17 +57,14 @@ async def analyze(filename: str = Body(..., embed=True)):
     report = cleaner.analyze()
 
     return {
-        "filename": filename,
+        "filename": body.filename,
         "report": report,
         "message": "Analysis complete. Call POST /api/clean/apply to apply fixes.",
     }
 
 
-@router.post("/clean/apply")
-async def apply_cleaning(
-    filename: str = Body(...),
-    fixes: dict = Body(default={}),
-):
+@router.post("/clean/apply", response_model=CleanApplyResponse)
+async def apply_cleaning(body: CleanApplyRequest):
     """Apply cleaning fixes to a dataset.
 
     Runs the configured fixes (fill nulls, remove outliers, drop duplicates)
@@ -78,20 +81,20 @@ async def apply_cleaning(
     Raises:
         HTTPException 404: If the file does not exist.
     """
-    filepath = DATA_RAW / filename
+    filepath = DATA_RAW / body.filename
     if not filepath.exists():
-        raise HTTPException(404, f"File {filename} not found")
+        raise HTTPException(404, f"File {body.filename} not found")
 
     cleaner = DataCleaner(str(filepath))
     report = cleaner.analyze()
-    result = cleaner.clean(fixes)
+    result = cleaner.clean(body.fixes)
 
-    output_path = DATA_PROCESSED / f"clean_{filename}"
+    output_path = DATA_PROCESSED / f"clean_{body.filename}"
     cleaner.df.to_csv(output_path, index=False)
 
     return {
-        "filename": filename,
+        "filename": body.filename,
         "analysis": report,
         "cleaning_result": result,
-        "download_url": f"/api/download/clean_{filename}",
+        "download_url": f"/api/download/clean_{body.filename}",
     }
