@@ -2,8 +2,9 @@
 
 from pathlib import Path
 
-from fastapi import APIRouter, Body, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from app.schemas import PipelineResponse, PipelineRunRequest
 from app.services.pipeline import PipelineService
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
@@ -20,7 +21,7 @@ except (OSError, PermissionError):
     pipeline = PipelineService(str(DATA_RAW), str(DATA_PROCESSED))
 
 
-@router.post("/pipeline/upload")
+@router.post("/pipeline/upload", response_model=PipelineResponse)
 async def pipeline_upload(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
         raise HTTPException(400, "Solo archivos .csv")
@@ -35,14 +36,14 @@ async def pipeline_upload(file: UploadFile = File(...)):
         raise HTTPException(500, f"Pipeline error: {str(e)}") from e
 
 
-@router.post("/pipeline/run")
-async def pipeline_run(filename: str = Body(..., embed=True)):
-    raw_path = DATA_RAW / filename
+@router.post("/pipeline/run", response_model=PipelineResponse)
+async def pipeline_run(body: PipelineRunRequest):
+    raw_path = DATA_RAW / body.filename
     if not raw_path.exists():
-        raise HTTPException(404, f"File {filename} not found. Upload it first via POST /api/upload")
+        raise HTTPException(404, f"File {body.filename} not found. Upload it first via POST /api/upload")
 
     try:
-        result = pipeline.run(filename)
+        result = pipeline.run(body.filename)
         return result
     except Exception as e:
         raise HTTPException(500, f"Pipeline error: {str(e)}") from e

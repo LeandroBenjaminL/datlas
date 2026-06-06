@@ -10,6 +10,8 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from app.schemas import DatasetInfo, DatasetsResponse
+
 router = APIRouter(prefix="/api", tags=["export"])
 
 try:
@@ -24,26 +26,26 @@ except (OSError, PermissionError):
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
-@router.get("/datasets")
+@router.get("/datasets", response_model=DatasetsResponse)
 async def list_datasets():
     """List all available datasets (raw + processed).
 
     Returns:
-        dict: Lists of raw and processed CSV files with metadata.
+        DatasetsResponse: Lists of raw and processed CSV files with metadata.
     """
-    raw_files = []
+    raw_files: list[DatasetInfo] = []
     if DATA_RAW.exists():
         for f in sorted(DATA_RAW.iterdir()):
             if f.suffix == ".csv":
-                raw_files.append({"filename": f.name, "size_kb": round(f.stat().st_size / 1024, 2)})
+                raw_files.append(DatasetInfo(filename=f.name, size_kb=round(f.stat().st_size / 1024, 2)))
 
-    processed_files = []
+    processed_files: list[DatasetInfo] = []
     if DATA_PROCESSED.exists():
         for f in sorted(DATA_PROCESSED.iterdir()):
             if f.suffix == ".csv":
-                processed_files.append({"filename": f.name, "size_kb": round(f.stat().st_size / 1024, 2)})
+                processed_files.append(DatasetInfo(filename=f.name, size_kb=round(f.stat().st_size / 1024, 2)))
 
-    return {"raw": raw_files, "processed": processed_files}
+    return DatasetsResponse(raw=raw_files, processed=processed_files)
 
 
 @router.get("/download/{filename:path}")

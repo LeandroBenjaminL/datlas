@@ -9,6 +9,8 @@ from pathlib import Path
 import pandas as pd
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from app.schemas import UploadResponse
+
 router = APIRouter(prefix="/api", tags=["upload"])
 
 try:
@@ -19,7 +21,7 @@ except (OSError, PermissionError):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-@router.post("/upload")
+@router.post("/upload", response_model=UploadResponse)
 async def upload_csv(file: UploadFile = File(...)):
     """Upload a CSV file and return dataset metadata.
 
