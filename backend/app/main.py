@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.db.database import init_db
 from app.routers import clean, explore, export, pipeline, upload
 
 
@@ -18,6 +19,14 @@ async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
     print(f"🚀 Datlas API starting on http://{settings.API_HOST}:{settings.API_PORT}")
     print(f"📚 Docs at http://{settings.API_HOST}:{settings.API_PORT}/docs")
+
+    # Initialize database tables (safe for dev; use Alembic in production)
+    try:
+        init_db()
+        print("✅ Database tables ready")
+    except Exception as e:
+        print(f"⚠️  Database init skipped: {e}")
+
     yield
     print("👋 Datlas API shutting down")
 

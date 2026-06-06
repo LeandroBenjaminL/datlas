@@ -1,3 +1,29 @@
+# ============================================
+# Datlas — Render Blueprint (render.yaml)
+# ============================================
+# Deploy automático desde GitHub a Render.com.
+#
+# Servicios:
+#   datlas-api    — FastAPI backend (Docker)
+#   datlas-db     — PostgreSQL 16 (managed)
+#
+# ⚠️  IMPORTANTE — Plan gratuito de Render:
+#   - PostgreSQL gratuito expira a los 90 DÍAS.
+#     Después de eso necesitás un plan pago (USD ~7/mes)
+#     o migrar los datos a otro proveedor.
+#   - El filesystem del servicio web es EFÍMERO.
+#     Los CSVs subidos se pierden en cada deploy.
+#     Descargalos durante la sesión activa.
+#
+# Variables de entorno inyectadas automáticamente por Render:
+#   DATABASE_URL  — PostgreSQL connection string interno
+#   PORT          — puerto asignado (Render lo setea solo)
+#
+# Uso:
+#   1. Conectá tu repo de GitHub en dashboard.render.com
+#   2. Render lee este archivo y crea los servicios
+#   3. La API usa DATABASE_URL automáticamente (ver app/config.py)
+
 services:
   - type: web
     name: datlas-api
@@ -7,6 +33,22 @@ services:
     branch: main
     dockerfilePath: Dockerfile
     rootDir: backend
+    healthCheckPath: /
     envVars:
       - key: DEBUG
         value: "false"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # AWS S3 (opcional — para persistir datasets grandes)
+      # - key: AWS_ACCESS_KEY_ID
+      #   sync: false
+      # - key: AWS_SECRET_ACCESS_KEY
+      #   sync: false
+      # - key: S3_BUCKET
+      #   value: datlas-datasets
+
+databases:
+  - name: datlas-db
+    plan: free
+    # Render inyecta DATABASE_URL automáticamente
+    # La API la lee con prioridad en app/config.py

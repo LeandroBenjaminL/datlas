@@ -1,0 +1,56 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.so
+
+# ── Virtualenv (no copiar al contenedor) ──
+.venv/
+venv/
+env/
+
+# ── Environment & Secrets ──
+.env
+.env.*
+!.env.example
+
+# ── Git ──
+.git/
+.gitignore
+.gitattributes
+
+# ── Databases ──
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ──
+logs/
+*.log
+
+# ── Tests & Coverage ──
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Data (no copiar datasets locales) ──
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# ── Engram ──
+.engram/

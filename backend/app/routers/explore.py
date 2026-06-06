@@ -2,12 +2,17 @@
 
 Provides POST /api/explore/analyze to run a full EDA report
 on an uploaded dataset: profile, distributions, correlations, and statistics.
+
+All analysis reports are persisted in PostgreSQL for later retrieval.
 """
 
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from app.db.crud import get_dataset_by_filename, save_analysis
+from app.db.database import get_db
 from app.schemas import ExploreAnalyzeRequest, ExploreAnalyzeResponse
 from app.services.explorer import DataExplorer
 
@@ -22,7 +27,7 @@ except (OSError, PermissionError):
 
 
 @router.post("/explore/analyze", response_model=ExploreAnalyzeResponse)
-async def explore_analyze(body: ExploreAnalyzeRequest):
+async def explore_analyze(body: ExploreAnalyzeRequest, db: Session = Depends(get_db)):
     """Run a full exploratory analysis on an uploaded dataset.
 
     Returns a comprehensive report with:
@@ -30,6 +35,8 @@ async def explore_analyze(body: ExploreAnalyzeRequest):
     - Distributions: histogram bins and counts per numeric column
     - Correlations: Pearson matrix and strongest pairs
     - Statistics: skewness and kurtosis per numeric column
+
+    The report is persisted in PostgreSQL.
 
     Args:
         filename: Name of the CSV file already uploaded via POST /api/upload.
@@ -49,6 +56,11 @@ async def explore_analyze(body: ExploreAnalyzeRequest):
 
     explorer = DataExplorer(str(filepath))
     report = explorer.analyze()
+
+    # Persist analysis in PostgreSQL
+    dataset = get_dataset_by_filename(db, body.filename)
+    if dataset:
+        save_analysis(db, dataset_id=dataset.id, analysis_type="explore", report=report)
 
     return {
         "filename": body.filename,

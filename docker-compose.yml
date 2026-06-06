@@ -17,8 +17,8 @@ services:
   # ── Backend: FastAPI + Pandas ──
   api:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: datlas-api
     ports:
       - "${API_PORT:-8000}:8000"
@@ -27,6 +27,9 @@ services:
       - ./data:/app/data # datasets compartidos
     env_file:
       - .env
+    environment:
+      # Override para docker-compose: el host de la DB es el nombre del servicio
+      - POSTGRES_HOST=db
     depends_on:
       db:
         condition: service_healthy

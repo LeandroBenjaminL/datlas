@@ -2,12 +2,21 @@
 
 Provides POST /api/clean/analyze to detect data quality issues
 and POST /api/clean/apply to apply configurable fixes on an uploaded dataset.
+
+All analysis reports are persisted in PostgreSQL for later retrieval.
 """
 
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from app.db.crud import (
+    get_dataset_by_filename,
+    save_analysis,
+    update_dataset_status,
+)
+from app.db.database import get_db
 from app.schemas import (
     CleanAnalyzeRequest,
     CleanAnalyzeResponse,
@@ -31,11 +40,12 @@ except (OSError, PermissionError):
 
 
 @router.post("/clean/analyze", response_model=CleanAnalyzeResponse)
-async def analyze(body: CleanAnalyzeRequest):
+async def analyze(body: CleanAnalyzeRequest, db: Session = Depends(get_db)):
     """Analyze a dataset and detect data quality issues.
 
     Scans the file for null values, outliers (IQR method), duplicate rows,
     and type mismatches. Returns a structured report with per-column findings.
+    The report is persisted in PostgreSQL.
 
     Args:
         filename: Name of the CSV file already uploaded via POST /api/upload.
@@ -56,6 +66,11 @@ async def analyze(body: CleanAnalyzeRequest):
     cleaner = DataCleaner(str(filepath))
     report = cleaner.analyze()
 
+    # Persist analysis in PostgreSQL
+    dataset = get_dataset_by_filename(db, body.filename)
+    if dataset:
+        save_analysis(db, dataset_id=dataset.id, analysis_type="clean", report=report)
+
     return {
         "filename": body.filename,
         "report": report,
@@ -64,11 +79,12 @@ async def analyze(body: CleanAnalyzeRequest):
 
 
 @router.post("/clean/apply", response_model=CleanApplyResponse)
-async def apply_cleaning(body: CleanApplyRequest):
+async def apply_cleaning(body: CleanApplyRequest, db: Session = Depends(get_db)):
     """Apply cleaning fixes to a dataset.
 
     Runs the configured fixes (fill nulls, remove outliers, drop duplicates)
-    and saves the cleaned dataset to data/processed/.
+    and saves the cleaned dataset to data/processed/. Results are persisted
+    in PostgreSQL.
 
     Args:
         filename: Name of the CSV file already uploaded.
@@ -91,6 +107,13 @@ async def apply_cleaning(body: CleanApplyRequest):
 
     output_path = DATA_PROCESSED / f"clean_{body.filename}"
     cleaner.df.to_csv(output_path, index=False)
+
+    # Persist analysis + cleaning result in PostgreSQL
+    dataset = get_dataset_by_filename(db, body.filename)
+    if dataset:
+        combined_report = {"analysis": report, "cleaning_result": result}
+        save_analysis(db, dataset_id=dataset.id, analysis_type="clean_apply", report=combined_report)
+        update_dataset_status(db, dataset.id, status="cleaned")
 
     return {
         "filename": body.filename,
