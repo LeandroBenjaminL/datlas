@@ -5,8 +5,8 @@ services:
     region: oregon
     plan: free
     branch: main
-    dockerfilePath: backend/Dockerfile
-    dockerContext: .
+    dockerfilePath: Dockerfile
+    rootDir: backend
     envVars:
       - key: DEBUG
         value: "false"
