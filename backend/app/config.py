@@ -15,6 +15,19 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     DEBUG: bool = True
+    API_KEY: str = ""  # Empty = no auth (dev mode). Set in production.
+
+    # ── Security ──
+    CORS_ORIGINS: str = "*"  # Comma-separated origins, "*" for dev
+    RATE_LIMIT: str = "100/minute"  # Global rate limit
+    MAX_UPLOAD_SIZE_MB: int = 50  # Max CSV upload size in megabytes
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parse CORS_ORIGINS into a list of allowed origins."""
+        if self.CORS_ORIGINS == "*":
+            return ["*"]
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     # ── PostgreSQL ──
     DATABASE_URL: str | None = None  # Render inyecta esto automáticamente

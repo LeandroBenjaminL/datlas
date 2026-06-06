@@ -39,13 +39,24 @@ services:
         value: "false"
       - key: PYTHONUNBUFFERED
         value: "1"
-      # AWS S3 (opcional — para persistir datasets grandes)
-      # - key: AWS_ACCESS_KEY_ID
-      #   sync: false
-      # - key: AWS_SECRET_ACCESS_KEY
-      #   sync: false
-      # - key: S3_BUCKET
-      #   value: datlas-datasets
+      # ── Security ──
+      - key: API_KEY
+        sync: false  # Set manually in Render dashboard (keep secret out of repo)
+      - key: CORS_ORIGINS
+        value: "https://leandrobenjaminl.github.io"
+      - key: RATE_LIMIT
+        value: "30/minute"
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "50"
+      # AWS S3 (storage de archivos) — para persistir datasets grandes)
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        sync: false  # Set manually in Render dashboard
 
 databases:
   - name: datlas-db
