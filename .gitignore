@@ -22,6 +22,18 @@ logs/
 # Plugins de OpenCode (no versionar)
 plugins/
 
+# Pi coding agent (no versionar)
+.pi/
+
+# OpenSpec / SDD (config interna de IA)
+openspec/
+
+# Perfiles de IA (personas y workflows)
+profiles/    
+
+# Investigaciones de IA (subagentes, auditorias internas)
+docs/investigacion-complementaria.md
+
 # Engram (memoria persistente local)
 .engram/
 
