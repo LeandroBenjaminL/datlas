@@ -14,7 +14,10 @@ opencode.json.generated
 *.sqlite3
 
 # Logs
-logs/*.log
+logs/
+*.log
+*.err
+*.out
 
 # Plugins de OpenCode (no versionar)
 plugins/
@@ -44,6 +47,8 @@ data/processed/*
 
 # Python
 *.egg-info/
+.coverage
+.coverage.*
 dist/
 build/
 
