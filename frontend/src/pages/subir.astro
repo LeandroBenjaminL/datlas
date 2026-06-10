@@ -33,7 +33,8 @@ const API_BASE = '';
 </Layout>
 
 <script>
-  const API = '';
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('file-input');
   const loading = document.getElementById('loading');
@@ -79,7 +80,7 @@ const API_BASE = '';
     formData.append('file', file);
 
     try {
-      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', headers: { 'X-API-Key': API_KEY }, body: formData });
       const data = await res.json();
       loading.style.display = 'none';
 

@@ -47,6 +47,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('file-input');
   const progress = document.getElementById('pipeline-progress');
@@ -101,7 +102,7 @@ import Layout from '../layouts/Layout.astro';
     formData.append('file', file);
 
     try {
-      const res = await fetch(`${API}/api/pipeline/upload`, {
+      const res = await fetch(`${API}/api/pipeline/upload`, { headers: { 'X-API-Key': API_KEY },
         method: 'POST',
         body: formData,
       });

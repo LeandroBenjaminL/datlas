@@ -105,7 +105,8 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
-  fetch(`${API}/api/datasets`)
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
+  fetch(`${API}/api/datasets`, { headers: { 'X-API-Key': API_KEY } })
     .then(r => r.json())
     .then(data => {
       const raw = data.raw || [];

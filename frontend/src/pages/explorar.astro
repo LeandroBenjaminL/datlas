@@ -21,6 +21,7 @@ import Layout from '../layouts/Layout.astro';
 <script is:inline>
 (function() {
   const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
   const el = document.getElementById('app');
   const params = new URLSearchParams(window.location.search);
   const fileFromUrl = params.get('file');
@@ -372,7 +373,7 @@ import Layout from '../layouts/Layout.astro';
     return html;
   }
 
-  fetch(`${API}/api/datasets`)
+  fetch(`${API}/api/datasets`, { headers: { 'X-API-Key': API_KEY } })
     .then(r => r.json())
     .then(data => {
       datasets = data.raw || [];
@@ -427,7 +428,7 @@ import Layout from '../layouts/Layout.astro';
   function doExplore() {
     fetch(`${API}/api/explore/analyze`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
       body: JSON.stringify({ filename: selectedFile }),
     })
       .then(r => r.json())
