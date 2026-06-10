@@ -12,7 +12,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  const API = '';
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
   const app = document.getElementById('app');
 
   const params = new URLSearchParams(window.location.search);
@@ -26,7 +27,7 @@ import Layout from '../layouts/Layout.astro';
 
   async function init() {
     try {
-      const res = await fetch(`${API}/api/datasets`);
+      const res = await fetch(`${API}/api/datasets`, { headers: { 'X-API-Key': API_KEY } });
       const data = await res.json();
       datasets = data.raw || [];
     } catch {}
@@ -51,7 +52,7 @@ import Layout from '../layouts/Layout.astro';
     try {
       const res = await fetch(`${API}/api/clean/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
         body: JSON.stringify({ filename }),
       });
       const data = await res.json();
@@ -92,7 +93,7 @@ import Layout from '../layouts/Layout.astro';
     try {
       const res = await fetch(`${API}/api/clean/apply`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
         body: JSON.stringify({ filename, fixes }),
       });
       const data = await res.json();
