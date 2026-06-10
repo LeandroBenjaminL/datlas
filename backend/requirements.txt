@@ -31,5 +31,15 @@ hypothesis>=6.125
 ruff==0.8.6
 bandit==1.9.4
 
+# ── Logging ──
+structlog==25.1.0          # Structured JSON logging
+
+# ── Security ──
+slowapi==0.1.9             # Rate limiting
+
+# ── S3 Storage ──
+boto3==1.38.0              # AWS SDK (S3 storage backend)
+moto==5.1.0                # Mock S3 for tests
+
 # ── Utilidades ──
 python-dotenv==1.2.2       # Cargar .env

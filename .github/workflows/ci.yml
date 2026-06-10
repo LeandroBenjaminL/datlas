@@ -11,6 +11,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  review-budget:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check PR size against review budget
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Check for override label
+          LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+          if echo "$LABELS" | grep -q 'override-review-budget'; then
+            echo "✅ Label 'override-review-budget' found — budget check bypassed."
+            exit 0
+          fi
+
+          # Get additions and deletions
+          DIFF=$(gh pr view $PR_NUMBER --json additions,deletions)
+          ADDITIONS=$(echo "$DIFF" | jq '.additions')
+          DELETIONS=$(echo "$DIFF" | jq '.deletions')
+          TOTAL=$((ADDITIONS + DELETIONS))
+          BUDGET=400
+
+          echo "Additions: $ADDITIONS"
+          echo "Deletions: $DELETIONS"
+          echo "Total changed lines: $TOTAL"
+          echo "Budget: $BUDGET"
+
+          if [ "$TOTAL" -gt "$BUDGET" ]; then
+            echo ""
+            echo "❌ PR exceeds the review budget of $BUDGET lines (changed: $TOTAL)."
+            echo ""
+            echo "   To fix:"
+            echo "   1. Split this PR into smaller, focused PRs (< $BUDGET lines each)."
+            echo "   2. Or add the 'override-review-budget' label if a larger PR is justified."
+            echo ""
+            exit 1
+          fi
+
+          echo "✅ PR size ($TOTAL lines) is within the $BUDGET-line budget."
+
   security:
     runs-on: ubuntu-latest
     defaults:
