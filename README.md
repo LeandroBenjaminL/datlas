@@ -17,6 +17,10 @@ Datlas es una **arquitectura profesional** para limpieza y análisis de datos. S
 | **Docker** | latest | Mismo entorno en dev y prod. "En mi máquina funciona" no existe |
 | **Astro** | 6 | 0KB JS por defecto, islas de interactividad, build estático |
 | **pgAdmin** | latest | Interfaz visual para explorar la DB sin tocar terminal |
+| **Auth** | SlowAPI + X-API-Key | Rate limiting configurables y autenticación por API Key |
+| **Logging** | structlog | JSON estructurado con Request ID para tracing distribuido |
+| **Storage** | S3 / Local | StorageBackend abstracto, transparente para los routers |
+| **SQLAlchemy** | 2.0+ | ORM con Alembic para migraciones de base de datos |
 | **Verity Engine** | — | Editor visual de circuitos lógicos adaptado para data pipelines |
 | **AWS Lambda** | — | Serverless: pagás solo cuando se usa (futuro) |
 
@@ -64,30 +68,38 @@ Cada tecnología se eligió con un porqué documentado en [`docs/arquitectura.md
 ## Arquitectura
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  DESARROLLO LOCAL (Docker)                                │
-│                                                           │
-│  docker compose up                                        │
-│  ├── datlas-api    (FastAPI + Pandas)     puerto 8000     │
-│  ├── datlas-db     (PostgreSQL 16)        puerto 5432     │
-│  └── datlas-pgadmin (interfaz visual)     puerto 5050     │
-│                                                           │
-│  Todo corre en containers. No instalás nada en tu máquina. │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  DESARROLLO LOCAL (Docker)                                        │
+│                                                                   │
+│  docker compose up                                                │
+│  ├── datlas-api    (FastAPI + Pandas)     puerto 8000             │
+│  ├── datlas-db     (PostgreSQL 16)        puerto 5432             │
+│  └── datlas-pgadmin (interfaz visual)     puerto 5050             │
+│                                                                   │
+│  🔐 Auth: X-API-Key (vacío = dev mode)                           │
+│  📝 Logs: JSON estructurado con Request ID                        │
+│  💾 Storage: Local (dev) / S3 (prod, configurable)                │
+│                                                                   │
+│  Todo corre en containers. No instalás nada en tu máquina.         │
+└──────────────────────────────────────────────────────────────────┘
                           │
                           │ deploy
                           ▼
-┌──────────────────────────────────────────────────────────┐
-│  PRODUCCIÓN                                               │
-│                                                           │
-│  GitHub Pages ───► Frontend Astro (estático)             │
-│  Render ─────────► Backend FastAPI (Docker)              │
-│                                                           │
-│  URLs:                                                    │
-│  🌐 Frontend  https://leandrobenjaminl.github.io/datlas  │
-│  🔌 API       https://datlas-api.onrender.com            │
-│  📚 Docs      https://datlas-api.onrender.com/docs       │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  PRODUCCIÓN                                                       │
+│                                                                   │
+│  Render ─────────► Backend FastAPI (Docker) + PostgreSQL          │
+│                     • AuthMiddleware (X-API-Key)                   │
+│                     • Rate limiting (SlowAPI)                      │
+│                     • Logging JSON (structlog)                     │
+│                     • S3 Storage (opcional)                        │
+│  GitHub Pages ───► Frontend Astro (estático)                      │
+│                                                                   │
+│  URLs:                                                             │
+│  🔌 API       https://datlas-api.onrender.com                     │
+│  📚 Docs      https://datlas-api.onrender.com/docs                │
+│  🌐 Frontend  https://leandrobenjaminl.github.io/datlas            │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -121,6 +133,32 @@ docker compose up --build
 ---
 
 ## API Reference
+
+| Método | Endpoint | Auth | Descripción |
+|--------|----------|------|-------------|
+| GET | `/` | No | Health check + versión de la API |
+| GET | `/health` | No | Health check detallado con verificación PostgreSQL |
+| POST | `/api/upload` | Sí* | Subir archivo CSV |
+| POST | `/api/clean/analyze` | Sí* | Analizar calidad de datos (nulos, outliers, duplicados) |
+| POST | `/api/clean/apply` | Sí* | Aplicar correcciones de limpieza |
+| POST | `/api/explore/analyze` | Sí* | Perfil exploratorio completo del dataset |
+| GET | `/api/datasets` | Sí* | Listar datasets subidos |
+| GET | `/api/datasets/{id}/analyses` | Sí* | Obtener análisis de un dataset |
+| POST | `/api/pipeline/upload` | Sí* | Subir CSV para pipeline |
+| POST | `/api/pipeline/run` | Sí* | Ejecutar pipeline completo |
+| GET | `/api/download/{filename}` | Sí* | Descargar archivo procesado |
+
+_\* Auth requerida solo si `API_KEY` está configurada (ver sección Seguridad)._
+
+### Autenticación
+
+Cuando `API_KEY` está configurada, todos los endpoints (excepto health) requieren:
+
+```
+X-API-Key: tu-api-key
+```
+
+Si `API_KEY` está vacío (default en dev), los endpoints funcionan sin auth.
 
 ### POST `/api/upload`
 Sube un archivo CSV y devuelve metadata.
@@ -163,6 +201,23 @@ Aplica correcciones al dataset y devuelve el resultado limpio.
 ```
 **Response**: Dataset limpio guardado en `data/processed/` + resumen de cambios.
 
+### POST `/api/explore/analyze`
+Genera un perfil exploratorio completo.
+
+**Request**:
+```json
+{ "filename": "dataset.csv" }
+```
+**Response**: Perfil con tipos, estadísticas, distribuciones, correlaciones, valores únicos.
+
+### GET `/api/datasets`
+Lista todos los datasets subidos y sus análisis.
+
+### POST `/api/pipeline/upload` + `/api/pipeline/run`
+Flujo completo: subir → limpiar → explorar → exportar en pipeline.
+
+Ver documentación interactiva en `/docs` para ejemplos completos.
+
 ---
 
 ## Documentación
@@ -190,15 +245,36 @@ La API debe estar corriendo (en Docker) en `http://localhost:8000`. El CORS ya e
 
 ---
 
+## Variables de Entorno
+
+Ver `.env.example` para la lista completa. Variables clave:
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `API_KEY` | `""` (vacío) | API Key para auth. Vacío = dev mode |
+| `CORS_ORIGINS` | `*` | Orígenes permitidos (separados por coma) |
+| `RATE_LIMIT` | `100/minute` | Límite de requests por IP |
+| `MAX_UPLOAD_SIZE_MB` | `50` | Tamaño máximo de archivo a subir |
+| `LOG_LEVEL` | `INFO` | Nivel de logging (DEBUG, INFO, WARNING, ERROR) |
+| `DATABASE_URL` | — | Conexión PostgreSQL (Render la inyecta) |
+| `S3_BUCKET` | `""` (vacío) | Bucket S3. Vacío = storage local |
+
 ## Testing
 
 ```bash
+# Todas las pruebas
+cd backend && python -m pytest tests/ -v
+
+# Con cobertura
+cd backend && python -m pytest tests/ -v --cov=app/ --cov-report=term-missing
+
 # Test manual con curl
 curl -X POST http://localhost:8000/api/upload -F "file=@data/raw/test.csv"
 
-# Test de análisis
+# Test autenticado
 curl -X POST http://localhost:8000/api/clean/analyze \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: tu-api-key" \
   -d '{"filename": "test.csv"}'
 ```
 
@@ -210,19 +286,34 @@ curl -X POST http://localhost:8000/api/clean/analyze \
 datlas/
 ├── docker-compose.yml        ← 3 servicios: API + DB + pgAdmin
 ├── .env.example              ← template de variables de entorno
+├── render.yaml               ← Config de deploy para Render
 ├── backend/
 │   ├── Dockerfile            ← Python 3.12-slim
 │   ├── requirements.txt      ← FastAPI, Pandas, SQLAlchemy...
+│   ├── alembic/              ← Migraciones de base de datos
 │   └── app/
-│       ├── main.py           ← Entry point FastAPI
+│       ├── main.py           ← Entry point + middleware + health
 │       ├── config.py         ← Settings (.env → Pydantic)
+│       ├── logging.py        ← structlog + RequestIDMiddleware
+│       ├── schemas.py        ← Pydantic schemas para API
+│       ├── middleware/
+│       │   ├── auth.py       ← AuthMiddleware (X-API-Key)
+│       │   └── logging.py    ← RequestIDMiddleware
 │       ├── routers/
 │       │   ├── upload.py     ← POST /api/upload
-│       │   └── clean.py      ← POST /api/clean/analyze + /apply
+│       │   ├── clean.py      ← POST /api/clean/analyze + /apply
+│       │   ├── explore.py    ← POST /api/explore/analyze
+│       │   ├── export.py     ← GET /api/download, /api/datasets
+│       │   └── pipeline.py   ← Pipeline automático
 │       ├── services/
-│       │   └── cleaner.py    ← DataCleaner: nulos, outliers, dupes
-│       ├── db/               ← SQLAlchemy models (futuro)
-│       └── utils/            ← Validators, exporters (futuro)
+│       │   ├── cleaner.py    ← DataCleaner: nulos, outliers, dupes
+│       │   ├── explorer.py   ← DataExplorer: profiling
+│       │   ├── pipeline.py   ← PipelineService: orquestador
+│       │   └── storage.py    ← StorageBackend (Local/S3)
+│       └── db/
+│           ├── database.py   ← Engine, session, get_db
+│           ├── models.py     ← Dataset + AnalysisResult ORM
+│           └── crud.py       ← CRUD operations
 ├── frontend/
 │   ├── astro.config.mjs      ← Config Astro + GitHub Pages
 │   ├── package.json
@@ -247,8 +338,13 @@ datlas/
 - ✅ **Fase 3**: Perfil C — pipeline completo + exportación
 - ✅ **Fase 4**: Deploy a producción (Render + GitHub Pages)
 - ✅ **Fase 5**: CI/CD con GitHub Actions (tests automáticos)
-- ⬜ **Fase 6**: Schemas Pydantic con validación + auto-documentación
-- ⬜ **Fase 7**: Property-based testing con Hypothesis
+- ✅ **Fase 6**: PostgreSQL persistence (SQLAlchemy + Alembic)
+- ✅ **Fase 7**: Schemas Pydantic con validación en todos los endpoints
+- ✅ **Fase 8**: Auth & Security (X-API-Key, rate limiting, CORS)
+- ✅ **Fase 9**: Structured logging (structlog, Request ID)
+- ✅ **Fase 10**: S3 Storage (Local/S3 abstracto)
+- ⬜ **Fase 11**: Property-based testing con Hypothesis (ampliar cobertura)
+- ⬜ **Fase 12**: Frontend conectado a API deployada
 
 ---
 

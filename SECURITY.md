@@ -15,6 +15,36 @@ If you discover a security vulnerability, **do not open a public issue**.
 Instead, report it privately via email to the repository owner.
 You should expect an acknowledgment within 48 hours and a remediation plan within 7 days.
 
+## Authentication & Authorization
+
+Datlas usa **X-API-Key** para autenticar requests:
+
+- Si `API_KEY` está vacío (default en desarrollo), los endpoints funcionan sin auth
+- Si `API_KEY` tiene un valor, todos los endpoints (excepto `/` y `/health`) requieren:
+  ```
+  X-API-Key: <tu-api-key>
+  ```
+- El header se valida en `app/middleware/auth.py` (AuthMiddleware)
+- Swagger UI muestra el security scheme automáticamente cuando API_KEY está configurada
+
+## Rate Limiting
+
+- Implementado con **SlowAPI**
+- Configurable via `RATE_LIMIT` (default `100/minute` por IP)
+- Se aplica a todos los endpoints de API
+
+## File Upload Security
+
+- **Tamaño máximo**: configurable via `MAX_UPLOAD_SIZE_MB` (default 50MB)
+- Solo se aceptan archivos CSV
+- El límite se aplica en los routers de upload y pipeline
+
+## CORS
+
+- Configurable via `CORS_ORIGINS` (default `*` en desarrollo)
+- En producción, setear a los orígenes específicos del frontend
+- Ejemplo: `https://leandrobenjaminl.github.io`
+
 ## Scope
 
 Datlas processes user-uploaded datasets. Security applies to:

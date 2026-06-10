@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0] — 2026-06-10
+
+### Added
+- 🔐 **Auth & Security**: AuthMiddleware con X-API-Key (vacío = dev mode), rate limiting con SlowAPI (configurable), límite de tamaño de archivos (`MAX_UPLOAD_SIZE_MB`), CORS configurable, health check con verificación PostgreSQL real
+- 📝 **Structured Logging**: structlog con salida JSON, RequestIDMiddleware para tracing distribuido, todos los `print()` reemplazados por `logger.info/warning`, `LOG_LEVEL` configurable
+- ☁️ **S3 Storage Persistence**: StorageBackend ABC con LocalStorage y S3Storage, todos los routers usan storage abstraction, PipelineService refactorizado para aceptar StorageBackend
+- 🗄️ **PostgreSQL Persistence**: SQLAlchemy models (Dataset, AnalysisResult), CRUD layer, Alembic migrations, inyección de dependencia de DB session
+- 📐 **Pydantic Schemas**: schemas de request/response para todos los endpoints con validación automática
+- 🧪 **Tests**: 17 tests de seguridad, 18 tests de storage (local + S3 via moto), 11 tests de logging, 16 tests de config
+- ⚙️ **CI**: review-budget check (400 líneas), label `override-review-budget` para PRs grandes
+
+### Changed
+- Todos los routers (upload, clean, explore, export, pipeline) persisten metadata en PostgreSQL
+- Refactor completo de routers para usar storage abstraction y response_model
+
 ## [0.3.0] — 2026-05-16
 
 ### Added
