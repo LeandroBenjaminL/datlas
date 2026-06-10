@@ -45,8 +45,7 @@ services:
           name: datlas-db
           property: connectionString
       # ── Security ──
-      - key: API_KEY
-        sync: false  # Set manually in Render dashboard (keep secret out of repo)
+      # API_KEY is set directly in Render dashboard (not in blueprint)
       - key: CORS_ORIGINS
         value: "https://leandrobenjaminl.github.io"
       - key: RATE_LIMIT
@@ -61,7 +60,7 @@ services:
       - key: AWS_REGION
         value: us-east-1
       - key: S3_BUCKET
-        sync: false  # Set manually in Render dashboard
+        sync: false # Set manually in Render dashboard
 
 databases:
   - name: datlas-db
