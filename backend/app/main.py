@@ -31,8 +31,6 @@ async def lifespan(app: FastAPI):
         host=settings.API_HOST,
         port=settings.API_PORT,
         auth=auth_status,
-        auth_key_len=len(settings.API_KEY) if settings.API_KEY else 0,
-        auth_key_prefix=settings.API_KEY[:8] if settings.API_KEY else "",
         rate_limit=settings.RATE_LIMIT,
         max_upload_mb=settings.MAX_UPLOAD_SIZE_MB,
     )
