@@ -46,7 +46,7 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  const API = 'http://localhost:8000';
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('file-input');
   const progress = document.getElementById('pipeline-progress');
@@ -132,7 +132,7 @@ import Layout from '../layouts/Layout.astro';
       results.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center; padding:1.5rem;">
         <p style="font-size:1.8rem; margin-bottom:.3rem;">⚠️</p>
         <p style="color:var(--red); font-weight:600; font-size:.72rem;">ERROR DE CONEXIÓN</p>
-        <p class="text-secondary" style="font-size:.62rem;">¿La API está corriendo en localhost:8000?</p>
+        <p class="text-secondary" style="font-size:.62rem;">¿La API está disponible?</p>
         <button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button>
       </div>`;
     }

@@ -20,7 +20,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script is:inline>
 (function() {
-  const API = 'http://localhost:8000';
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
   const el = document.getElementById('app');
   const params = new URLSearchParams(window.location.search);
   const fileFromUrl = params.get('file');
@@ -439,7 +439,7 @@ import Layout from '../layouts/Layout.astro';
         report = data.report;
         renderReport();
       })
-      .catch(err => showError('Error de red. ¿Docker está corriendo en localhost:8000?'));
+      .catch(err => showError('Error de red. ¿La API está disponible?'));
   }
 
   function renderCharts() {

@@ -39,6 +39,11 @@ services:
         value: "false"
       - key: PYTHONUNBUFFERED
         value: "1"
+      # ── Database (automatically injected by Render PostgreSQL) ──
+      - key: DATABASE_URL
+        fromDatabase:
+          name: datlas-db
+          property: connectionString
       # ── Security ──
       - key: API_KEY
         sync: false  # Set manually in Render dashboard (keep secret out of repo)
