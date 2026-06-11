@@ -10,28 +10,28 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <div class="card-grid">
-    <div class="card-link" onclick="window.location='/datlas/procesar'">
-      <div class="glass-card">
-        <div class="card-icon">🎯</div>
-        <div class="card-title">Procesar dataset</div>
-        <p class="card-desc">Subí un archivo CSV, limpiá datos sucios y explorá patrones. Tres herramientas en una.</p>
-        <div class="card-badges">
+    <a href="/datlas/procesar" style="text-decoration:none;color:inherit;display:block;">
+      <div class="home-card">
+        <div class="home-card-icon">🎯</div>
+        <div class="home-card-title">Procesar dataset</div>
+        <div class="home-card-desc">Subí un archivo CSV, limpiá datos sucios y explorá patrones. Tres herramientas en una.</div>
+        <div style="margin-top:.8rem;display:flex;gap:.3rem;flex-wrap:wrap;">
           <span class="badge badge-cyan">Subir</span>
           <span class="badge badge-cyan">Limpiar</span>
           <span class="badge badge-cyan">Explorar</span>
         </div>
       </div>
-    </div>
-    <div class="card-link" onclick="window.location='/datlas/pipeline'">
-      <div class="glass-card">
-        <div class="card-icon">⚡</div>
-        <div class="card-title">Pipeline automático</div>
-        <p class="card-desc">Todo en uno: subí, limpiá y explorá en un solo paso. Resultados combinados al instante.</p>
-        <div class="card-badges">
+    </a>
+    <a href="/datlas/pipeline" style="text-decoration:none;color:inherit;display:block;">
+      <div class="home-card">
+        <div class="home-card-icon">⚡</div>
+        <div class="home-card-title">Pipeline automático</div>
+        <div class="home-card-desc">Todo en uno: subí, limpiá y explorá en un solo paso. Resultados combinados al instante.</div>
+        <div style="margin-top:.8rem;display:flex;gap:.3rem;flex-wrap:wrap;">
           <span class="badge badge-green">Automático</span>
         </div>
       </div>
-    </div>
+    </a>
   </div>
 
   <div class="glass-card" style="margin-bottom:1rem;">
