@@ -447,6 +447,9 @@ const tabs = [
     output.innerHTML = html;
   }
 
+  // Expose switchTab globally for onclick handlers in innerHTML
+  window.switchTab = switchTab;
+
   // ── Init ──
   switchTab(startTab);
 })();
