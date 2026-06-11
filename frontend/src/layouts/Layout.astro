@@ -1,42 +1,5 @@
 ---
 const { title = 'Datlas' } = Astro.props;
-const path = Astro.url.pathname;
-
-const navItems = [
-  { label: 'Inicio', href: '/datlas' },
-  { label: 'Subir', href: '/datlas/subir' },
-  { label: 'Limpiar', href: '/datlas/limpiar' },
-  { label: 'Explorar', href: '/datlas/explorar' },
-  { label: 'Pipeline', href: '/datlas/pipeline' },
-  { label: 'Flow', href: '/datlas/flow' },
-];
-
-const steps = [
-  { label: 'Subir', icon: '📁', href: '/datlas/subir' },
-  { label: 'Limpiar', icon: '🧹', href: '/datlas/limpiar' },
-  { label: 'Explorar', icon: '🔍', href: '/datlas/explorar' },
-  { label: 'Pipeline', icon: '⚡', href: '/datlas/pipeline' },
-  { label: 'Flow', icon: '🌊', href: '/datlas/flow' },
-];
-
-function stepStatus(idx) {
-  const p = path.replace(/\/$/, '');
-  const href = steps[idx].href;
-  if (p === href || p.startsWith(href + '/')) return 'active';
-  for (let i = idx + 1; i < steps.length; i++) {
-    if (p.startsWith(steps[i].href)) return 'done';
-  }
-  if (idx === 0 && (p === '/datlas' || p === '/datlas/' || p === '')) return 'pending';
-  return 'pending';
-}
-
-function navClass(href) {
-  const p = path.replace(/\/$/, '');
-  const h = href.replace(/\/$/, '');
-  if (p === h) return 'active';
-  if (h !== '/datlas' && p.startsWith(h)) return 'active';
-  return '';
-}
 ---
 
 <!DOCTYPE html>
@@ -45,6 +8,10 @@ function navClass(href) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Datlas — Cargá, limpiá y explorá tus datasets en segundos." />
+    <meta name="author" content="Leandro Benjamin Lopez" />
+    <meta property="og:title" content="Datlas — Data Analysis Platform" />
+    <meta property="og:description" content="Cargá, limpiá y explorá tus datasets en segundos." />
+    <meta property="og:url" content="https://datlas-api.onrender.com" />
     <title>{title} · Datlas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -118,42 +85,42 @@ function navClass(href) {
         font-weight: 600;
         letter-spacing: .2em;
         text-transform: uppercase;
-        opacity: .4;
+        opacity: .6;
         color: var(--color-text);
+        transition: opacity .3s var(--ease-expo);
       }
-      .app-title:hover { opacity: .7; }
+      .app-title:hover { opacity: 1; color: var(--color-true); }
 
       .top-actions {
         display: flex;
-        gap: .5rem;
+        gap: .4rem;
         align-items: center;
       }
 
-      .nav-btn {
+      .icon-btn {
+        display: flex;
+        align-items: center;
+        gap: .3rem;
         font-family: var(--font-mono);
-        font-size: .6rem;
+        font-size: .55rem;
         font-weight: 600;
         letter-spacing: .08em;
         text-transform: uppercase;
         color: var(--color-text-dim);
+        padding: .35rem .7rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-glass);
         background: var(--bg-glass);
         backdrop-filter: blur(20px) saturate(1.2);
-        border: 1px solid var(--border-glass);
-        border-radius: 8px;
-        padding: .45rem .9rem;
         cursor: pointer;
         transition: all .3s var(--ease-expo);
-        white-space: nowrap;
       }
-      .nav-btn:hover {
+      .icon-btn:hover {
         color: var(--color-true);
         border-color: rgba(0, 240, 255, 0.2);
         box-shadow: var(--color-true-glow);
       }
-      .nav-btn.active {
-        color: var(--color-true);
-        border-color: rgba(0, 240, 255, 0.2);
-      }
+      .icon-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
       .action-btn {
         font-family: var(--font-mono);
@@ -214,65 +181,6 @@ function navClass(href) {
       .action-btn.sm { padding: .3rem .65rem; font-size: .52rem; }
       .action-btn.lg { padding: .55rem 1.2rem; font-size: .68rem; }
 
-      .step-bar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        padding: .6rem 1.5rem;
-        background: var(--bg-glass);
-        backdrop-filter: blur(20px) saturate(1.2);
-        border-top: 1px solid var(--border-glass);
-        border-bottom: 1px solid var(--border-glass);
-        flex-wrap: wrap;
-      }
-      .step-item {
-        display: flex;
-        align-items: center;
-        gap: .3rem;
-        padding: .3rem .6rem;
-        border-radius: 8px;
-        font-size: .58rem;
-        font-weight: 600;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: var(--color-text-dim);
-        text-decoration: none;
-        transition: all .3s var(--ease-expo);
-      }
-      .step-item .step-num {
-        width: 18px; height: 18px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: .55rem; font-weight: 700;
-        border: 1.5px solid var(--color-text-dim);
-        color: var(--color-text-dim);
-        transition: all .3s var(--ease-expo);
-      }
-      .step-item:hover {
-        color: var(--color-true);
-        background: rgba(0, 240, 255, 0.04);
-      }
-      .step-item.active { color: var(--color-true); }
-      .step-item.active .step-num {
-        border-color: var(--color-true);
-        color: var(--color-true);
-        box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-      }
-      .step-item.done { color: var(--green); }
-      .step-item.done .step-num {
-        border-color: var(--green);
-        color: var(--green);
-      }
-      .step-connector {
-        width: 16px;
-        height: 1px;
-        background: var(--color-text-dim);
-        opacity: .3;
-        flex-shrink: 0;
-      }
-      .step-connector.done { background: var(--green); opacity: .6; }
-
       main {
         flex: 1;
         max-width: 960px;
@@ -283,21 +191,40 @@ function navClass(href) {
 
       footer {
         text-align: center;
-        padding: .8rem;
+        padding: 1rem 1.5rem;
         font-size: .55rem;
         color: var(--color-text-dim);
-        letter-spacing: .12em;
-        text-transform: uppercase;
+        letter-spacing: .08em;
         border-top: 1px solid var(--border-glass);
         background: var(--bg-glass);
         backdrop-filter: blur(20px) saturate(1.2);
       }
+      footer .footer-name {
+        color: var(--color-true);
+        font-weight: 600;
+        letter-spacing: .12em;
+      }
+      footer .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: .6rem;
+        margin-top: .3rem;
+      }
+      footer a {
+        color: var(--color-text-dim);
+        transition: color .3s var(--ease-expo);
+      }
       footer a:hover { color: var(--color-true); }
+      footer svg {
+        width: 14px;
+        height: 14px;
+        vertical-align: middle;
+      }
 
       .glass-card {
         background: var(--color-gate-bg);
         border: 1px solid var(--color-gate-border);
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 1.2rem;
         transition: border-color .3s var(--ease-expo), box-shadow .3s var(--ease-expo);
       }
@@ -413,29 +340,83 @@ function navClass(href) {
       }
       @keyframes spin { to { transform: rotate(360deg); } }
 
-      @media (max-width: 600px) {
-        html { font-size: 16px; }
-        .hero h1 { font-size: 2.2rem; }
-        .hero p { font-size: 1rem; }
-        header { flex-direction: column; text-align: center; padding: 0.8rem 1rem; }
-        nav { justify-content: center; gap: 1rem; }
-        main { padding: 1rem; }
-        .grid-3 { grid-template-columns: 1fr; }
-        .btn { width: 100%; text-align: center; }
-        .hero { padding: 2rem 1rem; }
-        table { font-size: 0.75rem !important; }
-        table td, table th { padding: 0.3rem !important; }
-        .top-bar { padding: 0 1rem; }
-        .nav-btn { font-size: .52rem; padding: .3rem .5rem; }
-        .step-bar { padding: .4rem .5rem; gap: .1rem; }
-        .step-item { font-size: .5rem; padding: .2rem .35rem; }
-        .step-item .step-num { width: 16px; height: 16px; font-size: .45rem; }
-        .step-connector { width: 8px; }
+      /* Tabs */
+      .tab-bar {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.2rem;
+        border-bottom: 1px solid var(--border-glass);
+      }
+      .tab-btn {
+        font-family: var(--font-mono);
+        font-size: .6rem;
+        font-weight: 600;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--color-text-dim);
+        background: none;
+        border: none;
+        padding: .6rem 1rem;
+        cursor: pointer;
+        transition: all .3s var(--ease-expo);
+        position: relative;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+      .tab-btn:hover { color: var(--color-true); }
+      .tab-btn.active {
+        color: var(--color-true);
+        border-bottom-color: var(--color-true);
       }
 
-      @media (min-width: 601px) and (max-width: 1024px) {
-        .grid-3 { grid-template-columns: repeat(2, 1fr); }
-        .hero h1 { font-size: 2.8rem; }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: .8rem;
+        margin: 1.5rem 0;
+      }
+      .card-link {
+        text-decoration: none;
+        display: block;
+      }
+      .card-link .glass-card {
+        cursor: pointer;
+        transition: all .3s var(--ease-expo);
+      }
+      .card-link:hover .glass-card {
+        border-color: rgba(0, 240, 255, 0.2);
+        box-shadow: var(--color-true-glow);
+        transform: translateY(-2px);
+      }
+      .card-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border-glass);
+        background: var(--bg-secondary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: .6rem;
+      }
+      .card-title {
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--color-text);
+        margin-bottom: .2rem;
+      }
+      .card-desc {
+        font-size: .6rem;
+        color: var(--color-text-dim);
+        line-height: 1.5;
+      }
+
+      @media (max-width: 600px) {
+        html { font-size: 16px; }
+        main { padding: 1rem; }
+        .top-bar { padding: 0 1rem; }
+        .card-grid { grid-template-columns: 1fr; }
+        .icon-btn span { display: none; }
       }
     </style>
   </head>
@@ -443,33 +424,28 @@ function navClass(href) {
     <header class="top-bar">
       <a href="/datlas" class="app-title">DATLAS</a>
       <nav class="top-actions">
-        {navItems.map(item => (
-          <a href={item.href} class={`nav-btn ${navClass(item.href)}`}>{item.label}</a>
-        ))}
+        <a href="https://github.com/LeandroBenjaminL/datlas" target="_blank" rel="noopener" class="icon-btn" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="https://linkedin.com/in/leandrobenjaminl" target="_blank" rel="noopener" class="icon-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          <span>LinkedIn</span>
+        </a>
       </nav>
     </header>
-
-    <div class="step-bar">
-      {steps.map((s, i) => {
-        const status = stepStatus(i);
-        const connector = i > 0;
-        const prevStatus = i > 0 ? stepStatus(i - 1) : 'done';
-        return (
-          <>
-            {connector && <div class={`step-connector ${status === 'done' || prevStatus === 'done' ? 'done' : ''}`}></div>}
-            <a href={s.href} class={`step-item ${status}`}>
-              <span class="step-num">{status === 'done' ? '✓' : i + 1}</span>
-              <span>{s.label}</span>
-            </a>
-          </>
-        );
-      })}
-    </div>
 
     <main>
       <slot />
     </main>
 
-    <footer>DATLAS · <a href="https://github.com/LeandroBenjaminL/datlas">GITHUB</a> · 2026</footer>
+    <footer>
+      <div>Built by <span class="footer-name">Leandro Benjamin Lopez</span></div>
+      <div class="footer-links">
+        <a href="https://github.com/LeandroBenjaminL" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://linkedin.com/in/leandrobenjaminl" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/LeandroBenjaminL/datlas" target="_blank" rel="noopener">Datlas repo</a>
+      </div>
+    </footer>
   </body>
 </html>

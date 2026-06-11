@@ -1,0 +1,453 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const tabs = [
+  { id: 'upload', label: '📁 Subir', icon: '' },
+  { id: 'clean', label: '🧹 Limpiar', icon: '' },
+  { id: 'explore', label: '🔍 Explorar', icon: '' },
+];
+---
+
+<Layout title="PROCESAR">
+  <div class="page-title">
+    <h1><span class="highlight">🎯</span> PROCESAR DATASET</h1>
+    <p>Subí un CSV, limpialo y explorá los resultados en un solo lugar.</p>
+  </div>
+
+  <div class="tab-bar" id="tab-bar">
+    {tabs.map(t => (
+      <button class="tab-btn" data-tab={t.id}>{t.label}</button>
+    ))}
+  </div>
+
+  <!-- Upload Tab -->
+  <div id="tab-upload" class="tab-content">
+    <div style="max-width:480px; margin:0 auto;">
+      <div id="dropzone" class="dropzone">
+        <div class="dropzone-inner">
+          <div class="dz-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="dz-title">ARRASTRÁ TU ARCHIVO ACÁ</p>
+          <p class="dz-hint">o hace click para seleccionar</p>
+          <span class="badge badge-cyan" style="margin-top:.2rem;">CSV · Máx 50 MB</span>
+        </div>
+        <input type="file" id="file-input" accept=".csv">
+      </div>
+      <div id="loading" class="loading-state">
+        <div class="spinner" style="margin:0 auto;"></div>
+        <p style="color:var(--color-text-dim); margin-top:.8rem; font-size:.62rem; letter-spacing:.04em;">SUBIENDO <span id="loading-name" style="color:var(--color-true);"></span></p>
+      </div>
+      <div id="upload-results" class="results-area"></div>
+    </div>
+  </div>
+
+  <!-- Clean Tab -->
+  <div id="tab-clean" class="tab-content" style="display:none;">
+    <div id="clean-app" style="max-width:640px; margin:0 auto;"></div>
+  </div>
+
+  <!-- Explore Tab -->
+  <div id="tab-explore" class="tab-content" style="display:none;">
+    <div id="explore-app" style="max-width:640px; margin:0 auto;"></div>
+  </div>
+</Layout>
+
+<style>
+  .dropzone {
+    border: 1.5px dashed var(--color-gate-border);
+    border-radius: var(--radius);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .3s var(--ease-expo);
+    background: var(--color-gate-bg);
+  }
+  .dropzone:hover, .dropzone.dz-active {
+    border-color: var(--color-true);
+    background: rgba(0, 240, 255, 0.03);
+    box-shadow: var(--color-true-glow);
+  }
+  .dropzone-inner { pointer-events: none; }
+  .dz-icon-wrap {
+    width: 48px; height: 48px; margin: 0 auto .6rem;
+    border-radius: 12px; border: 1px solid var(--border-glass);
+    background: var(--bg-secondary);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--color-text-dim);
+  }
+  .dz-active .dz-icon-wrap { color: var(--color-true); border-color: rgba(0, 240, 255, 0.2); }
+  .dz-title {
+    font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: .2rem;
+  }
+  .dz-hint { font-size: .6rem; color: var(--color-text-dim); }
+  #file-input { display: none; }
+  .loading-state { display: none; text-align: center; padding: 2rem; }
+  .results-area { margin-top: .8rem; }
+
+  .stats-row {
+    display: flex; justify-content: center; gap: 1.5rem; margin: .6rem 0; flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--color-true); display: block; }
+  .stat-label { font-size: .5rem; color: var(--color-text-dim); letter-spacing: .1em; text-transform: uppercase; }
+
+  .cols-preview { margin: .6rem 0; }
+  .cols-title { font-size: .55rem; color: var(--color-text-dim); margin-bottom: .3rem; letter-spacing: .05em; }
+  .cols-list { display: flex; flex-wrap: wrap; gap: .2rem; }
+  .col-tag {
+    display: inline-block; padding: .08rem .4rem; margin: .08rem;
+    background: rgba(0, 240, 255, 0.06); color: var(--color-true);
+    border: 1px solid rgba(0, 240, 255, 0.12); border-radius: 4px;
+    font-size: .58rem;
+  }
+
+  .success-header {
+    display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem;
+  }
+  .success-actions {
+    display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .6rem;
+  }
+
+  .fixes-list { margin: .4rem 0; }
+  .fix-tag {
+    display: inline-block; padding: .08rem .4rem; margin: .08rem;
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 20px; font-size: .55rem;
+  }
+  .fix-option {
+    display: flex; align-items: center; gap: .35rem; margin-bottom: .15rem;
+    font-size: .7rem; cursor: pointer; padding: .15rem .35rem;
+    border-radius: 4px; transition: background .2s var(--ease-expo);
+  }
+  .fix-option:hover { background: rgba(0, 240, 255, 0.04); }
+  .fix-option input { accent-color: var(--color-true); }
+  .fix-strategy { color: var(--color-text-dim); font-size: .62rem; }
+</style>
+
+<script>
+(function() {
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://datlas-api.onrender.com';
+  const API_KEY = 'dtl4s_7kXp9mW2qR5vY8bN3jH6cL0fA1eD';
+  const params = new URLSearchParams(window.location.search);
+  const startTab = params.get('tab') || 'upload';
+  const fileParam = params.get('file');
+
+  // ── Tab switching ──
+  let currentTab = 'upload';
+  let datasets = [];
+  let selectedFile = fileParam || '';
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    const tabEl = document.getElementById('tab-' + tabId);
+    const btnEl = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (tabEl) tabEl.style.display = '';
+    if (btnEl) btnEl.classList.add('active');
+    currentTab = tabId;
+
+    // Refresh datasets when switching to clean or explore
+    if (tabId === 'clean') initClean();
+    if (tabId === 'explore') initExplore();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // ── Upload tab ──
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const loading = document.getElementById('loading');
+  const uploadResults = document.getElementById('upload-results');
+  const loadingName = document.getElementById('loading-name');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  ['dragover', 'dragleave', 'drop'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      if (ev === 'dragover') dropzone.classList.add('dz-active');
+      else dropzone.classList.remove('dz-active');
+      if (ev === 'drop' && e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+    });
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) uploadFile(fileInput.files[0]);
+  });
+
+  async function uploadFile(file) {
+    if (!file.name.endsWith('.csv')) {
+      uploadResults.innerHTML = `<div class="glass-card" style="border-color:var(--red); text-align:center;"><p style="font-size:1.8rem;margin-bottom:.3rem;">❌</p><p style="color:var(--red);font-weight:600;font-size:.72rem;">SOLO ARCHIVOS .CSV</p><p class="text-secondary" style="font-size:.65rem;margin-top:.3rem;">Seleccioná un archivo con extensión .csv</p><button class="action-btn secondary sm mt-1" onclick="location.reload()">VOLVER</button></div>`;
+      uploadResults.classList.add('fade-in');
+      return;
+    }
+    dropzone.style.display = 'none';
+    loadingName.textContent = file.name;
+    loading.style.display = 'block';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', headers: { 'X-API-Key': API_KEY }, body: formData });
+      const data = await res.json();
+      loading.style.display = 'none';
+      if (!res.ok) {
+        uploadResults.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="font-size:1.8rem;margin-bottom:.3rem;">❌</p><p style="color:var(--red);font-weight:600;font-size:.72rem;">${data.detail||'Error'}</p><button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button></div>`;
+        uploadResults.classList.add('fade-in');
+        return;
+      }
+      selectedFile = data.filename;
+      uploadResults.innerHTML = `
+        <div class="glass-card fade-in">
+          <div class="success-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div>
+              <h3 style="font-size:.85rem;color:var(--green);">${data.filename}</h3>
+              <p class="text-secondary" style="font-size:.62rem;">Recibido y listo para procesar</p>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat"><span class="stat-value">${data.rows}</span><span class="stat-label">Filas</span></div>
+            <div class="stat"><span class="stat-value">${data.columns}</span><span class="stat-label">Columnas</span></div>
+            <div class="stat"><span class="stat-value">${data.size_kb} KB</span><span class="stat-label">Tamaño</span></div>
+          </div>
+          <div class="cols-preview">
+            <p class="cols-title">Columnas</p>
+            <div class="cols-list">${data.col_names.map(c => `<span class="col-tag">${c}</span>`).join('')}</div>
+          </div>
+          <div class="success-actions">
+            <button class="action-btn primary sm" onclick="switchTab('clean')">LIMPIAR</button>
+            <button class="action-btn secondary sm" onclick="switchTab('explore')">EXPLORAR</button>
+            <button class="action-btn secondary sm" onclick="location.reload()">SUBIR OTRO</button>
+          </div>
+        </div>`;
+      uploadResults.classList.add('fade-in');
+      await loadDatasets();
+    } catch {
+      loading.style.display = 'none';
+      uploadResults.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="font-size:1.8rem;margin-bottom:.3rem;">⚠️</p><p style="color:var(--red);font-weight:600;font-size:.72rem;">ERROR DE CONEXIÓN</p><p class="text-secondary" style="font-size:.62rem;">¿La API está disponible?</p><button class="action-btn secondary sm mt-1" onclick="location.reload()">REINTENTAR</button></div>`;
+    }
+  }
+
+  // ── Shared datasets ──
+  async function loadDatasets() {
+    try {
+      const res = await fetch(`${API}/api/datasets`, { headers: { 'X-API-Key': API_KEY } });
+      const data = await res.json();
+      datasets = data.raw || [];
+    } catch {}
+  }
+
+  // ── Clean tab ──
+  let cleanState = 'loading';
+  let cleanReport = null;
+  let cleanResult = null;
+
+  async function initClean() {
+    const app = document.getElementById('clean-app');
+    if (!app) return;
+    await loadDatasets();
+    if (datasets.length === 0) {
+      app.innerHTML = `<div class="glass-card" style="text-align:center;padding:2rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-dim)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p style="font-size:.8rem;font-weight:600;margin:.6rem 0 .2rem;">NO HAY DATASETS</p><p class="text-secondary" style="font-size:.62rem;">Primero subí un CSV.</p></div>`;
+      return;
+    }
+    if (!selectedFile || !datasets.some(d => d.filename === selectedFile)) {
+      selectedFile = datasets[0].filename;
+    }
+    renderCleanPicker(app);
+  }
+
+  function renderCleanPicker(app) {
+    app.innerHTML = `
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <select id="clean-ds-select" style="flex:1;min-width:140px;font-size:.65rem;">
+          ${datasets.map(d => `<option value="${d.filename}" ${d.filename===selectedFile?'selected':''}>${d.filename}</option>`).join('')}
+        </select>
+        <button id="clean-analyze-btn" class="action-btn primary sm">ANALIZAR</button>
+      </div>
+      <div id="clean-output"></div>`;
+    document.getElementById('clean-ds-select')?.addEventListener('change', e => { selectedFile = e.target.value; });
+    document.getElementById('clean-analyze-btn')?.addEventListener('click', runCleanAnalyze);
+  }
+
+  async function runCleanAnalyze() {
+    const output = document.getElementById('clean-output');
+    if (!output) return;
+    output.innerHTML = `<div style="text-align:center;padding:1.5rem;"><div class="spinner" style="margin:0 auto;"></div><p style="color:var(--color-true);margin-top:.6rem;font-size:.65rem;">ANALIZANDO ${selectedFile}</p></div>`;
+    try {
+      const res = await fetch(`${API}/api/clean/analyze`, { method: 'POST', headers: { 'Content-Type':'application/json', 'X-API-Key': API_KEY }, body: JSON.stringify({ filename: selectedFile }) });
+      const data = await res.json();
+      if (!res.ok) { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">${data.detail||'Error'}</p></div>`; return; }
+      cleanReport = data.report;
+      renderCleanReport(output);
+    } catch { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">Error de conexión</p></div>`; }
+  }
+
+  function renderCleanReport(output) {
+    const r = cleanReport;
+    const nullKeys = Object.keys(r.nulls);
+    const outKeys = Object.keys(r.outliers);
+    const hasDupes = r.duplicates.total_duplicate_rows > 0;
+    const totalIssues = nullKeys.length + outKeys.length + (hasDupes ? 1 : 0);
+    let html = `
+      <div class="glass-card mb-1"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">
+        <div><h3 style="margin:0;font-size:.8rem;">${selectedFile}</h3><p class="text-secondary" style="font-size:.6rem;">${r.original_shape.rows} filas × ${r.original_shape.columns} columnas</p></div>
+        <span class="badge ${totalIssues>0?'badge-yellow':'badge-green'}">${totalIssues>0?totalIssues+' problema'+(totalIssues>1?'s':''):'Sin problemas'}</span>
+      </div></div>`;
+
+    html += `<div class="glass-card mb-1"><h3>VALORES NULOS</h3>`;
+    if (nullKeys.length === 0) html += `<p class="text-green mt-1" style="font-size:.72rem;">✅ Sin valores nulos.</p>`;
+    else {
+      html += `<div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th style="text-align:right;">Nulos</th><th style="text-align:right;">%</th><th>Sugerencia</th></tr>`;
+      for (const col of nullKeys) html += `<tr><td style="font-weight:500;">${col}</td><td style="text-align:right;">${r.nulls[col].null_count}</td><td style="text-align:right;">${r.nulls[col].null_percent}%</td><td><span class="badge badge-cyan">${r.nulls[col].suggested_fix}</span></td></tr>`;
+      html += `</table></div>`;
+    }
+    html += `</div>`;
+
+    html += `<div class="glass-card mb-1"><h3>OUTLIERS</h3>`;
+    if (outKeys.length === 0) html += `<p class="text-green mt-1" style="font-size:.72rem;">✅ Sin outliers.</p>`;
+    else {
+      html += `<div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th style="text-align:right;">Outliers</th><th style="text-align:right;">%</th><th>Rango normal</th></tr>`;
+      for (const col of outKeys) html += `<tr><td style="font-weight:500;">${col}</td><td style="text-align:right;color:var(--red);">${r.outliers[col].outlier_count}</td><td style="text-align:right;">${r.outliers[col].outlier_percent}%</td><td style="font-size:.68rem;color:var(--color-text-dim);">[${r.outliers[col].lower_bound}, ${r.outliers[col].upper_bound}]</td></tr>`;
+      html += `</table></div>`;
+    }
+    html += `</div>`;
+
+    html += `<div class="glass-card mb-1"><h3>DUPLICADOS</h3>`;
+    if (!hasDupes) html += `<p class="text-green mt-1" style="font-size:.72rem;">✅ Sin duplicados.</p>`;
+    else html += `<p style="margin-top:.4rem;">${r.duplicates.total_duplicate_rows} filas duplicadas <span class="badge badge-yellow">${r.duplicates.duplicate_percent}%</span></p>`;
+    html += `</div>`;
+
+    if (totalIssues > 0) {
+      html += `<div class="glass-card" style="border-color:rgba(0,240,255,0.12);"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;"><h3 style="margin:0;color:var(--green);">CORREGIR AHORA</h3></div>`;
+      if (nullKeys.length > 0) {
+        html += `<p class="text-secondary mb-1" style="font-size:.62rem;font-weight:600;">Nulos</p>`;
+        for (const col of nullKeys) {
+          const fix = r.nulls[col].suggested_fix.includes('median')?'median': r.nulls[col].suggested_fix.includes('mode')?'mode':'drop';
+          html += `<label class="fix-option"><input type="checkbox" class="fix-null" data-col="${col}" data-strategy="${fix}" checked /><span>${col}</span><span class="fix-strategy">→ ${fix}</span></label>`;
+        }
+      }
+      if (outKeys.length > 0) {
+        html += `<p class="text-secondary mb-1 mt-1" style="font-size:.62rem;font-weight:600;">Outliers</p>`;
+        for (const col of outKeys) html += `<label class="fix-option"><input type="checkbox" class="fix-outlier" data-col="${col}" checked /><span>${col}</span></label>`;
+      }
+      if (hasDupes) html += `<p class="text-secondary mb-1 mt-1" style="font-size:.62rem;font-weight:600;">Duplicados</p><label class="fix-option"><input type="checkbox" id="clean-fix-dupes" checked /><span>Remover ${r.duplicates.total_duplicate_rows} duplicadas</span></label>`;
+      html += `<button id="clean-apply-btn" class="action-btn success sm" style="width:100%;justify-content:center;margin-top:.6rem;">APLICAR CORRECCIONES</button></div>`;
+    } else {
+      html += `<div class="glass-card text-center"><p style="font-size:1.8rem;margin-bottom:.3rem;">✨</p><p class="text-green" style="font-weight:600;font-size:.78rem;">Dataset impecable</p></div>`;
+    }
+    output.innerHTML = html;
+
+    document.getElementById('clean-apply-btn')?.addEventListener('click', runCleanApply);
+  }
+
+  async function runCleanApply() {
+    const output = document.getElementById('clean-output');
+    if (!output) return;
+    const fixes = { fill_nulls: {}, remove_outliers: [] };
+    let removeDuplicates = false;
+    document.querySelectorAll('.fix-null:checked').forEach(cb => { fixes.fill_nulls[cb.dataset.col] = cb.dataset.strategy; });
+    document.querySelectorAll('.fix-outlier:checked').forEach(cb => { fixes.remove_outliers.push(cb.dataset.col); });
+    if (document.getElementById('clean-fix-dupes')?.checked) removeDuplicates = true;
+    if (removeDuplicates) fixes.remove_duplicates = true;
+
+    output.innerHTML = `<div style="text-align:center;padding:1.5rem;"><div class="spinner" style="margin:0 auto;"></div><p style="color:var(--color-true);margin-top:.6rem;font-size:.65rem;">APLICANDO...</p></div>`;
+    try {
+      const res = await fetch(`${API}/api/clean/apply`, { method: 'POST', headers: { 'Content-Type':'application/json', 'X-API-Key': API_KEY }, body: JSON.stringify({ filename: selectedFile, fixes }) });
+      const data = await res.json();
+      if (!res.ok) { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">${data.detail||'Error'}</p></div>`; return; }
+      cleanResult = data.cleaning_result;
+      const cr = cleanResult;
+      output.innerHTML = `
+        <div class="glass-card" style="border-color:rgba(0,240,255,0.15);">
+          <div class="text-center" style="padding:.3rem 0;">
+            <p style="font-size:2rem;margin-bottom:.3rem;">✅</p>
+            <h3 style="color:var(--green);font-size:.9rem;margin-bottom:.8rem;">DATASET LIMPIADO</h3>
+            <div class="stats-row">
+              <div class="stat"><span class="stat-value" style="color:var(--color-text-dim);">${cr.original_shape[0]}</span><span class="stat-label">Antes</span></div>
+              <div class="stat"><span class="stat-value" style="color:var(--green);">${cr.new_shape[0]}</span><span class="stat-label">Después</span></div>
+              <div class="stat"><span class="stat-value" style="color:var(--red);">-${cr.rows_removed}</span><span class="stat-label">Eliminadas</span></div>
+            </div>
+            <div class="fixes-list"><p style="font-size:.58rem;color:var(--color-text-dim);margin-bottom:.3rem;font-weight:600;">Correcciones:</p>${cr.applied_fixes.map(f => `<span class="fix-tag">${f}</span>`).join('')}</div>
+            <div class="btn-group" style="justify-content:center;margin-top:1rem;">
+              <a href="${API}/api/download/clean_${selectedFile}" class="action-btn success sm" download>DESCARGAR CSV</a>
+              <button class="action-btn primary sm" onclick="switchTab('explore')">EXPLORAR</button>
+            </div>
+          </div>
+        </div>`;
+    } catch { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">Error de conexión</p></div>`; }
+  }
+
+  // ── Explore tab ──
+  async function initExplore() {
+    const app = document.getElementById('explore-app');
+    if (!app) return;
+    await loadDatasets();
+    if (datasets.length === 0) {
+      app.innerHTML = `<div class="glass-card" style="text-align:center;padding:2rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-dim)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p style="font-size:.8rem;font-weight:600;margin:.6rem 0 .2rem;">NO HAY DATASETS</p><p class="text-secondary" style="font-size:.62rem;">Primero subí un CSV.</p></div>`;
+      return;
+    }
+    if (!selectedFile || !datasets.some(d => d.filename === selectedFile)) selectedFile = datasets[0].filename;
+    app.innerHTML = `
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <select id="explore-ds-select" style="flex:1;min-width:140px;font-size:.65rem;">
+          ${datasets.map(d => `<option value="${d.filename}" ${d.filename===selectedFile?'selected':''}>${d.filename}</option>`).join('')}
+        </select>
+        <button id="explore-btn" class="action-btn primary sm">EXPLORAR</button>
+      </div>
+      <div id="explore-output"></div>`;
+    document.getElementById('explore-ds-select')?.addEventListener('change', e => { selectedFile = e.target.value; });
+    document.getElementById('explore-btn')?.addEventListener('click', runExplore);
+  }
+
+  async function runExplore() {
+    const output = document.getElementById('explore-output');
+    if (!output) return;
+    output.innerHTML = `<div style="text-align:center;padding:1.5rem;"><div class="spinner" style="margin:0 auto;"></div><p style="color:var(--color-true);margin-top:.6rem;font-size:.65rem;">EXPLORANDO ${selectedFile}</p></div>`;
+    try {
+      const res = await fetch(`${API}/api/explore/analyze`, { method: 'POST', headers: { 'Content-Type':'application/json', 'X-API-Key': API_KEY }, body: JSON.stringify({ filename: selectedFile }) });
+      const data = await res.json();
+      if (!res.ok) { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">${data.detail||'Error'}</p></div>`; return; }
+      renderExploreReport(data, output, selectedFile);
+    } catch { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">Error de conexión</p></div>`; }
+  }
+
+  function renderExploreReport(data, output, file) {
+    const r = data.report;
+    let html = `<div class="glass-card mb-1"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">
+      <div><h3 style="margin:0;font-size:.8rem;">${file}</h3><p class="text-secondary" style="font-size:.6rem;">${r.shape[0]} filas × ${r.shape[1]} columnas</p></div>
+      <a href="${API}/api/download/${file}" class="action-btn secondary sm" download>DESCARGAR</a>
+    </div></div>`;
+
+    html += `<div class="glass-card mb-1"><h3>PERFIL DE COLUMNAS</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th>Tipo</th><th style="text-align:right;">Nulos</th><th style="text-align:right;">Únicos</th><th style="text-align:right;">Min</th><th style="text-align:right;">Max</th></tr>`;
+    for (const col of r.columns) {
+      html += `<tr><td style="font-weight:500;">${col.name}</td><td><span class="badge badge-cyan">${col.dtype}</span></td><td style="text-align:right;">${col.null_count}</td><td style="text-align:right;">${col.unique_count}</td><td style="text-align:right;font-size:.6rem;">${col.min ?? '-'}</td><td style="text-align:right;font-size:.6rem;">${col.max ?? '-'}</td></tr>`;
+    }
+    html += `</table></div></div>`;
+
+    if (r.numeric_summary && Object.keys(r.numeric_summary).length > 0) {
+      html += `<div class="glass-card mb-1"><h3>ESTADÍSTICAS NUMÉRICAS</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th style="text-align:right;">Media</th><th style="text-align:right;">Mediana</th><th style="text-align:right;">Std</th><th style="text-align:right;">Q1</th><th style="text-align:right;">Q3</th></tr>`;
+      for (const [col, s] of Object.entries(r.numeric_summary)) {
+        html += `<tr><td style="font-weight:500;">${col}</td><td style="text-align:right;">${s.mean?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.median?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.std?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.q1?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.q3?.toFixed(2) ?? '-'}</td></tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+
+    if (r.correlations && Object.keys(r.correlations).length > 0) {
+      html += `<div class="glass-card mb-1"><h3>CORRELACIONES (Pearson)</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Pares</th><th style="text-align:right;">Correlación</th></tr>`;
+      for (const [pair, val] of Object.entries(r.correlations)) {
+        const absVal = Math.abs(val);
+        const color = absVal > 0.7 ? 'var(--color-true)' : absVal > 0.4 ? 'var(--yellow)' : 'var(--color-text-dim)';
+        html += `<tr><td style="font-size:.65rem;">${pair.replace('_',' ')}</td><td style="text-align:right;color:${color};font-weight:600;">${val.toFixed(3)}</td></tr>`;
+      }
+      html += `</table></div></div>`;
+    }
+    output.innerHTML = html;
+  }
+
+  // ── Init ──
+  switchTab(startTab);
+})();
+</script>
