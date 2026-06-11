@@ -411,7 +411,7 @@ const tabs = [
       const data = await res.json();
       if (!res.ok) { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">${data.detail||'Error'}</p></div>`; return; }
       renderExploreReport(data, output, selectedFile);
-    } catch { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">Error de conexión</p></div>`; }
+    } catch (e) { output.innerHTML = `<div class="glass-card" style="border-color:var(--red);text-align:center;"><p style="color:var(--red);font-weight:600;">Error de conexión</p><p style="font-size:.55rem;color:var(--color-text-dim);margin-top:.3rem;">${e.message}</p></div>`; }
   }
 
   function renderExploreReport(data, output, file) {
