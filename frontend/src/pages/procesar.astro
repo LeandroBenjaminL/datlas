@@ -416,31 +416,39 @@ const tabs = [
 
   function renderExploreReport(data, output, file) {
     const r = data.report;
+    const p = r.profile;
+    const cols = p.columns;
+    const colNames = Object.keys(cols);
+    const numericCols = colNames.filter(c => ['int64','float64'].includes(cols[c].type));
+
     let html = `<div class="glass-card mb-1"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">
-      <div><h3 style="margin:0;font-size:.8rem;">${file}</h3><p class="text-secondary" style="font-size:.6rem;">${r.shape[0]} filas × ${r.shape[1]} columnas</p></div>
+      <div><h3 style="margin:0;font-size:.8rem;">${file}</h3><p class="text-secondary" style="font-size:.6rem;">${p.shape.rows} filas × ${p.shape.columns} columnas</p></div>
       <a href="${API}/api/download/${file}" class="action-btn secondary sm" download>DESCARGAR</a>
     </div></div>`;
 
     html += `<div class="glass-card mb-1"><h3>PERFIL DE COLUMNAS</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th>Tipo</th><th style="text-align:right;">Nulos</th><th style="text-align:right;">Únicos</th><th style="text-align:right;">Min</th><th style="text-align:right;">Max</th></tr>`;
-    for (const col of r.columns) {
-      html += `<tr><td style="font-weight:500;">${col.name}</td><td><span class="badge badge-cyan">${col.dtype}</span></td><td style="text-align:right;">${col.null_count}</td><td style="text-align:right;">${col.unique_count}</td><td style="text-align:right;font-size:.6rem;">${col.min ?? '-'}</td><td style="text-align:right;font-size:.6rem;">${col.max ?? '-'}</td></tr>`;
+    for (const name of colNames) {
+      const c = cols[name];
+      html += `<tr><td style="font-weight:500;">${name}</td><td><span class="badge badge-cyan">${c.type}</span></td><td style="text-align:right;">${c.nulls}</td><td style="text-align:right;">${c.unique}</td><td style="text-align:right;font-size:.6rem;">${c.min ?? '-'}</td><td style="text-align:right;font-size:.6rem;">${c.max ?? '-'}</td></tr>`;
     }
     html += `</table></div></div>`;
 
-    if (r.numeric_summary && Object.keys(r.numeric_summary).length > 0) {
+    if (numericCols.length > 0) {
       html += `<div class="glass-card mb-1"><h3>ESTADÍSTICAS NUMÉRICAS</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Columna</th><th style="text-align:right;">Media</th><th style="text-align:right;">Mediana</th><th style="text-align:right;">Std</th><th style="text-align:right;">Q1</th><th style="text-align:right;">Q3</th></tr>`;
-      for (const [col, s] of Object.entries(r.numeric_summary)) {
-        html += `<tr><td style="font-weight:500;">${col}</td><td style="text-align:right;">${s.mean?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.median?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.std?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.q1?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${s.q3?.toFixed(2) ?? '-'}</td></tr>`;
+      for (const name of numericCols) {
+        const c = cols[name];
+        html += `<tr><td style="font-weight:500;">${name}</td><td style="text-align:right;">${c.mean?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${c.median?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${c.std?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${c.q25?.toFixed(2) ?? '-'}</td><td style="text-align:right;">${c.q75?.toFixed(2) ?? '-'}</td></tr>`;
       }
       html += `</table></div></div>`;
     }
 
-    if (r.correlations && Object.keys(r.correlations).length > 0) {
+    const pairs = r.correlations?.pairs;
+    if (pairs && pairs.length > 0) {
       html += `<div class="glass-card mb-1"><h3>CORRELACIONES (Pearson)</h3><div style="overflow-x:auto;margin-top:.4rem;"><table><tr><th>Pares</th><th style="text-align:right;">Correlación</th></tr>`;
-      for (const [pair, val] of Object.entries(r.correlations)) {
-        const absVal = Math.abs(val);
+      for (const p of pairs) {
+        const absVal = Math.abs(p.correlation);
         const color = absVal > 0.7 ? 'var(--color-true)' : absVal > 0.4 ? 'var(--yellow)' : 'var(--color-text-dim)';
-        html += `<tr><td style="font-size:.65rem;">${pair.replace('_',' ')}</td><td style="text-align:right;color:${color};font-weight:600;">${val.toFixed(3)}</td></tr>`;
+        html += `<tr><td style="font-size:.65rem;">${p.x} ↔ ${p.y}</td><td style="text-align:right;color:${color};font-weight:600;">${p.correlation.toFixed(3)}</td></tr>`;
       }
       html += `</table></div></div>`;
     }
