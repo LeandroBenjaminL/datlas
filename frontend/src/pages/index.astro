@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="INICIO">
   <div style="text-align:center; padding:2rem 0 1rem;">
-    <p style="display:inline-block; font-size:.5rem; font-weight:600; letter-spacing:.2em; color:var(--color-true); border:1px solid rgba(0,240,255,0.15); border-radius:20px; padding:.2rem .7rem; margin-bottom:.8rem; background:rgba(0,240,255,0.04); text-transform:uppercase;">Portfolio Project</p>
+    <p style="display:inline-block; font-size:.5rem; font-weight:600; letter-spacing:.2em; color:var(--color-true); border:1px solid rgba(0,255,102,0.15); border-radius:20px; padding:.2rem .7rem; margin-bottom:.8rem; background:rgba(0,255,102,0.04); text-transform:uppercase;">Portfolio Project</p>
     <h1 style="font-size:2rem; font-weight:900; margin-bottom:.3rem; letter-spacing:-.02em; line-height:1.1;">Cargá, limpiá, <span style="color:var(--color-true);">explorá</span>.</h1>
     <p style="color:var(--color-text-dim); font-size:.7rem; max-width:380px; margin:0 auto 1rem;">Subí un CSV. Datlas lo analiza al toque. Sin instalar nada.</p>
   </div>
@@ -81,7 +81,7 @@ import Layout from '../layouts/Layout.astro';
       body.innerHTML = raw.map(d => {
         const isClean = processed.some(p => p.filename === `clean_${d.filename}`);
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;border-radius:8px;transition:background .2s var(--ease-expo);gap:.5rem;flex-wrap:wrap;background:rgba(0,0,0,0.15);margin-bottom:.25rem;"
-          onmouseenter="this.style.background='rgba(0,240,255,0.04)'" onmouseleave="this.style.background='rgba(0,0,0,0.15)'">
+          onmouseenter="this.style.background='rgba(0,255,102,0.04)'" onmouseleave="this.style.background='rgba(0,0,0,0.15)'">
           <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
             <span style="font-weight:600;font-size:.68rem;color:var(--color-text);">${d.filename}</span>
             <span style="color:var(--color-text-dim);font-size:.55rem;letter-spacing:.04em;">${d.size_kb} KB</span>

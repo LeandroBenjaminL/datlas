@@ -21,21 +21,21 @@ const { title = 'Datlas' } = Astro.props;
       html, body { height: 100%; }
 
       :root {
-        --bg-primary: #0a0a12;
-        --bg-secondary: #12121e;
-        --bg-glass: rgba(18, 18, 30, 0.75);
-        --border-glass: rgba(0, 240, 255, 0.08);
-        --color-true: #00f0ff;
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #111111;
+        --bg-glass: rgba(17, 17, 17, 0.85);
+        --border-glass: #1f1f1f;
+        --color-true: #00ff66;
         --color-false: #1a1a2e;
-        --color-true-glow: 0 0 20px rgba(0, 240, 255, 0.4), 0 0 60px rgba(0, 240, 255, 0.1);
+        --color-true-glow: 0 0 20px rgba(0, 255, 102, 0.3), 0 0 60px rgba(0, 255, 102, 0.08);
         --color-accent: #7b61ff;
         --color-accent-glow: 0 0 15px rgba(123, 97, 255, 0.3);
         --color-danger: #ff4466;
         --color-danger-glow: 0 0 12px rgba(255, 68, 102, 0.3);
-        --color-text: #e0e0e8;
-        --color-text-dim: #5a5a72;
-        --color-gate-bg: #16162a;
-        --color-gate-border: #2a2a44;
+        --color-text: #ffffff;
+        --color-text-dim: #6b7280;
+        --color-gate-bg: #0d0d0d;
+        --color-gate-border: #1f1f1f;
         --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
         --font-sans: 'Inter', 'SF Pro', system-ui, sans-serif;
         --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -46,20 +46,19 @@ const { title = 'Datlas' } = Astro.props;
         --red-bg: rgba(239, 68, 68, 0.1);
         --yellow: #f59e0b;
         --yellow-bg: rgba(245, 158, 11, 0.1);
-        --radius: 12px;
-        --radius-sm: 8px;
+        --radius: 8px;
+        --radius-sm: 6px;
       }
 
       body {
-        font-family: var(--font-mono);
+        font-family: var(--font-sans);
         background: var(--bg-primary);
         color: var(--color-text);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        user-select: none;
-        background-image: radial-gradient(circle at 1px 1px, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
-        background-size: 40px 40px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       a { color: inherit; text-decoration: none; }
 
@@ -68,25 +67,23 @@ const { title = 'Datlas' } = Astro.props;
         top: 0;
         left: 0;
         right: 0;
-        height: 48px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 1.5rem;
         z-index: 200;
-        background: linear-gradient(180deg, var(--bg-primary) 60%, transparent);
-        pointer-events: none;
+        border-bottom: 1px solid var(--border-glass);
+        background: var(--bg-primary);
       }
-      .top-bar > * { pointer-events: auto; }
 
       .app-title {
         font-family: var(--font-mono);
-        font-size: .7rem;
-        font-weight: 600;
-        letter-spacing: .2em;
-        text-transform: uppercase;
-        opacity: .6;
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .15em;
         color: var(--color-text);
+        opacity: .5;
         transition: opacity .3s var(--ease-expo);
       }
       .app-title:hover { opacity: 1; color: var(--color-true); }
@@ -105,27 +102,25 @@ const { title = 'Datlas' } = Astro.props;
         height: 28px;
         border-radius: 6px;
         color: var(--color-text-dim);
-        opacity: .5;
+        opacity: .4;
         transition: all .3s var(--ease-expo);
       }
       .icon-btn:hover {
         opacity: 1;
         color: var(--color-true);
-        background: rgba(0, 240, 255, 0.06);
+        background: rgba(0, 255, 102, 0.06);
       }
       .icon-btn svg { width: 16px; height: 16px; }
 
       .action-btn {
-        font-family: var(--font-mono);
-        font-size: .6rem;
+        font-family: var(--font-sans);
+        font-size: .55rem;
         font-weight: 600;
-        letter-spacing: .08em;
-        text-transform: uppercase;
+        letter-spacing: .06em;
         color: var(--color-text-dim);
-        background: var(--bg-glass);
-        backdrop-filter: blur(20px) saturate(1.2);
+        background: transparent;
         border: 1px solid var(--border-glass);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         padding: .45rem .9rem;
         cursor: pointer;
         transition: all .3s var(--ease-expo);
@@ -178,22 +173,19 @@ const { title = 'Datlas' } = Astro.props;
         flex: 1;
         max-width: 960px;
         margin: 0 auto;
-        padding: 1.5rem 2rem;
+        padding: 2rem 2rem;
         width: 100%;
       }
 
       footer {
         text-align: center;
-        padding: 1rem 1.5rem;
-        font-size: .55rem;
+        padding: .8rem 1.5rem;
+        font-size: .5rem;
         color: var(--color-text-dim);
-        letter-spacing: .08em;
         border-top: 1px solid var(--border-glass);
-        background: var(--bg-glass);
-        backdrop-filter: blur(20px) saturate(1.2);
       }
       footer .footer-name {
-        color: var(--color-true);
+        color: var(--color-text);
         font-weight: 600;
       }
       footer .footer-links {
@@ -221,9 +213,9 @@ const { title = 'Datlas' } = Astro.props;
         border: 1px solid var(--color-gate-border);
         border-radius: var(--radius);
         padding: 1.2rem;
-        transition: border-color .3s var(--ease-expo), box-shadow .3s var(--ease-expo);
+        transition: border-color .3s var(--ease-expo);
       }
-      .glass-card:hover { border-color: var(--border-hover, #3a3a5a); }
+      .glass-card:hover { border-color: rgba(0, 255, 102, 0.15); }
       .glass-card h3 {
         font-size: .65rem;
         font-weight: 600;
@@ -258,9 +250,9 @@ const { title = 'Datlas' } = Astro.props;
         background: var(--yellow-bg);
       }
       .badge-cyan {
-        border-color: rgba(0, 240, 255, 0.2);
+        border-color: rgba(0, 255, 102, 0.2);
         color: var(--color-true);
-        background: rgba(0, 240, 255, 0.06);
+        background: rgba(0, 255, 102, 0.06);
       }
 
       input, select, textarea {
@@ -358,7 +350,22 @@ const { title = 'Datlas' } = Astro.props;
         border-bottom: 2px solid transparent;
         margin-bottom: -1px;
       }
-      .tab-btn:hover { color: var(--color-true); }
+      .tab-btn {
+        font-family: var(--font-sans);
+        font-size: .58rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        color: var(--color-text-dim);
+        background: none;
+        border: none;
+        padding: .6rem 1rem;
+        cursor: pointer;
+        transition: all .3s var(--ease-expo);
+        position: relative;
+        border-bottom: 1.5px solid transparent;
+        margin-bottom: -1px;
+      }
+      .tab-btn:hover { color: var(--color-text); }
       .tab-btn.active {
         color: var(--color-true);
         border-bottom-color: var(--color-true);
@@ -379,7 +386,7 @@ const { title = 'Datlas' } = Astro.props;
         transition: all .3s var(--ease-expo);
       }
       .card-link:hover .glass-card {
-        border-color: rgba(0, 240, 255, 0.2);
+        border-color: rgba(0, 255, 102, 0.2);
         box-shadow: var(--color-true-glow);
         transform: translateY(-2px);
       }
