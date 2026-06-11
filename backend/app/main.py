@@ -7,6 +7,7 @@ Includes authentication, rate limiting, and configurable CORS.
 
 from contextlib import asynccontextmanager
 
+from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -14,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
+from alembic import command as alembic_command
 from app.config import settings
 from app.db.database import engine, init_db
 from app.logging import logger
@@ -35,12 +37,18 @@ async def lifespan(app: FastAPI):
         max_upload_mb=settings.MAX_UPLOAD_SIZE_MB,
     )
 
-    # Initialize database tables (safe for dev; use Alembic in production)
+    # Initialize database tables + run pending Alembic migrations
     try:
         init_db()
         logger.info("database_tables_ready")
+
+        # Run pending migrations automatically (so column changes apply on Render deploy)
+        alembic_cfg = AlembicConfig("alembic.ini")
+        alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url_sync)
+        alembic_command.upgrade(alembic_cfg, "head")
+        logger.info("database_migrations_ok")
     except Exception as e:
-        logger.warning("database_init_skipped", error=str(e))
+        logger.warning("database_migration_skipped", error=str(e))
 
     yield
     logger.info("datlas_api_shutting_down")
