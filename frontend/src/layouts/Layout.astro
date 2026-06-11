@@ -139,19 +139,23 @@ const { title = 'Datlas' } = Astro.props;
       .action-btn:active { transform: scale(.97); }
       .action-btn.primary {
         color: var(--color-true);
-        border-color: rgba(0, 240, 255, 0.2);
+        border-color: rgba(0, 255, 102, 0.25);
+        background: rgba(0, 255, 102, 0.04);
       }
       .action-btn.primary:hover {
+        border-color: var(--color-true);
         box-shadow: var(--color-true-glow);
-        background: rgba(0, 240, 255, 0.06);
+        background: rgba(0, 255, 102, 0.08);
       }
       .action-btn.success {
         color: var(--green);
-        border-color: rgba(34, 197, 94, 0.2);
+        border-color: rgba(0, 255, 102, 0.25);
+        background: rgba(0, 255, 102, 0.04);
       }
       .action-btn.success:hover {
-        box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
-        background: rgba(34, 197, 94, 0.06);
+        border-color: var(--green);
+        box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+        background: rgba(0, 255, 102, 0.08);
       }
       .action-btn.danger:hover {
         color: var(--color-danger);
@@ -160,11 +164,11 @@ const { title = 'Datlas' } = Astro.props;
       }
       .action-btn.secondary {
         border-color: var(--color-gate-border);
+        color: var(--color-text-dim);
       }
       .action-btn.secondary:hover {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
-        box-shadow: var(--color-accent-glow);
+        border-color: var(--color-text-dim);
+        color: var(--color-text);
       }
       .action-btn.sm { padding: .3rem .65rem; font-size: .52rem; }
       .action-btn.lg { padding: .55rem 1.2rem; font-size: .68rem; }
@@ -400,11 +404,12 @@ const { title = 'Datlas' } = Astro.props;
         margin-bottom: .8rem;
       }
       .card-title {
-        font-size: .8rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        letter-spacing: .04em;
+        letter-spacing: -.01em;
         color: var(--color-text);
-        margin-bottom: .35rem;
+        margin-bottom: .4rem;
+        line-height: 1.2;
       }
       .card-desc {
         font-size: .65rem;
