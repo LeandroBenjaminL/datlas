@@ -6,9 +6,8 @@ factory function that selects the right backend based on settings.
 
 import boto3
 import pytest
-from moto import mock_aws
-
 from app.services.storage import LocalStorage, S3Storage, get_storage
+from moto import mock_aws
 
 # ── LocalStorage tests ─────────────────────────────────────
 

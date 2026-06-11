@@ -7,10 +7,9 @@ a running PostgreSQL instance.
 from pathlib import Path
 
 import pytest
+from app.db.database import Base, get_db
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
-from app.db.database import Base, get_db
 
 FIXTURE_DIR = Path(__file__).parent / "data"
 

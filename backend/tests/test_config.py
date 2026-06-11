@@ -5,9 +5,8 @@ and computed properties (database_url, database_url_sync).
 """
 
 import pytest
-from pydantic import ValidationError
-
 from app.config import Settings
+from pydantic import ValidationError
 
 
 class TestSettingsDefaults:

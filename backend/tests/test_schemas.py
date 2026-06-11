@@ -4,8 +4,6 @@ Validates request/response models with valid and invalid inputs.
 """
 
 import pytest
-from pydantic import ValidationError
-
 from app.schemas import (
     CleanAnalyzeRequest,
     CleanAnalyzeResponse,
@@ -19,6 +17,7 @@ from app.schemas import (
     PipelineRunRequest,
     UploadResponse,
 )
+from pydantic import ValidationError
 
 
 class TestUploadResponse:

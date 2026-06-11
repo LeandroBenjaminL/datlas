@@ -7,6 +7,7 @@ Includes authentication, rate limiting, and configurable CORS.
 
 from contextlib import asynccontextmanager
 
+from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,6 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from alembic import command as alembic_command
 from app.config import settings
 from app.db.database import engine
 from app.logging import logger

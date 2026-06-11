@@ -9,7 +9,7 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG"]
-ignore = ["B904"]
+ignore = ["B904", "B008", "ARG001"]
 
 [tool.bandit]
 exclude_dirs = ["tests"]

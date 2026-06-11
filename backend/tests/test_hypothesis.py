@@ -4,11 +4,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from hypothesis import given, settings
-from hypothesis import strategies as st
-
 from app.services.cleaner import DataCleaner
 from app.services.explorer import DataExplorer
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 
 def csv_from_dataframe(df: pd.DataFrame) -> str:

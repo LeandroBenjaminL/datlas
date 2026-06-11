@@ -7,10 +7,9 @@ import json
 import logging
 
 import structlog
-from starlette.testclient import TestClient
-
 from app.logging import add_request_id, request_id_ctx, setup_logging
 from app.main import app
+from starlette.testclient import TestClient
 
 client = TestClient(app)
 
