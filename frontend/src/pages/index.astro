@@ -10,7 +10,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <div class="card-grid">
-    <a href="/datlas/procesar" class="card-link">
+    <div class="card-link" onclick="window.location='/datlas/procesar'">
       <div class="glass-card">
         <div class="card-icon">🎯</div>
         <div class="card-title">Procesar dataset</div>
@@ -21,8 +21,8 @@ import Layout from '../layouts/Layout.astro';
           <span class="badge badge-cyan">Explorar</span>
         </div>
       </div>
-    </a>
-    <a href="/datlas/pipeline" class="card-link">
+    </div>
+    <div class="card-link" onclick="window.location='/datlas/pipeline'">
       <div class="glass-card">
         <div class="card-icon">⚡</div>
         <div class="card-title">Pipeline automático</div>
@@ -31,7 +31,7 @@ import Layout from '../layouts/Layout.astro';
           <span class="badge badge-green">Automático</span>
         </div>
       </div>
-    </a>
+    </div>
   </div>
 
   <div class="glass-card" style="margin-bottom:1rem;">

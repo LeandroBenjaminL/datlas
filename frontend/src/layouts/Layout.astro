@@ -213,13 +213,13 @@ const { title = 'Datlas' } = Astro.props;
       }
 
       .glass-card {
-        background: #141414;
-        border: 1px solid #1f1f1f;
-        border-radius: var(--radius);
-        padding: 1.2rem;
+        background: #161616;
+        border: 1px solid #262626;
+        border-radius: 10px;
+        padding: 1.5rem;
         transition: border-color .3s var(--ease-expo);
       }
-      .glass-card:hover { border-color: rgba(0, 255, 102, 0.25); }
+      .glass-card:hover { border-color: rgba(0, 255, 102, 0.3); }
       .glass-card h3 {
         font-size: .65rem;
         font-weight: 600;
@@ -382,11 +382,9 @@ const { title = 'Datlas' } = Astro.props;
         margin: 1.5rem 0;
       }
       .card-link {
-        text-decoration: none;
         display: block;
+        cursor: pointer;
       }
-      a.card-link { color: inherit; text-decoration: none; display: block; }
-      a.card-link:visited { color: inherit; }
       .card-link .glass-card {
         cursor: pointer;
         transition: all .3s var(--ease-expo);
