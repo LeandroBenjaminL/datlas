@@ -17,7 +17,7 @@ from slowapi.util import get_remote_address
 
 from alembic import command as alembic_command
 from app.config import settings
-from app.db.database import engine, init_db
+from app.db.database import engine
 from app.logging import logger
 from app.middleware.auth import AuthMiddleware
 from app.middleware.logging import RequestIDMiddleware
@@ -37,18 +37,25 @@ async def lifespan(app: FastAPI):
         max_upload_mb=settings.MAX_UPLOAD_SIZE_MB,
     )
 
-    # Initialize database tables + run pending Alembic migrations
-    try:
-        init_db()
-        logger.info("database_tables_ready")
+    # Run pending Alembic migrations automatically.
+    # On a fresh DB, alembic creates all tables from the initial migration.
+    # On an existing DB (where tables exist but alembic_version doesn't),
+    # stamp the initial revision first so upgrade only applies pending changes.
+    alembic_cfg = AlembicConfig("alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url_sync)
 
-        # Run pending migrations automatically (so column changes apply on Render deploy)
-        alembic_cfg = AlembicConfig("alembic.ini")
-        alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url_sync)
+    try:
         alembic_command.upgrade(alembic_cfg, "head")
         logger.info("database_migrations_ok")
-    except Exception as e:
-        logger.warning("database_migration_skipped", error=str(e))
+    except Exception as exc:
+        # Tables likely exist but alembic_version is missing
+        logger.warning("alembic_upgrade_failed_stamping", error=str(exc))
+        try:
+            alembic_command.stamp(alembic_cfg, "aabec5d9ad75")
+            alembic_command.upgrade(alembic_cfg, "head")
+            logger.info("database_migrations_ok_after_stamp")
+        except Exception as exc2:
+            logger.warning("database_migration_skipped", error=str(exc2))
 
     yield
     logger.info("datlas_api_shutting_down")
