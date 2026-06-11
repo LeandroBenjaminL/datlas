@@ -20,11 +20,15 @@ def create_dataset(
     rows: int,
     columns: int,
     col_names: list[str],
+    content: bytes | None = None,
 ) -> Dataset:
-    """Insert a new dataset metadata record.
+    """Insert a new dataset metadata record with optional CSV content.
 
     If a dataset with the same filename already exists, it is replaced
     (upsert semantics — old record and its analyses are deleted via cascade).
+
+    The content parameter stores the raw CSV bytes in a LargeBinary column
+    so files survive across deploys on Render.
     """
     existing = db.query(Dataset).filter(Dataset.filename == filename).first()
     if existing:
@@ -38,6 +42,7 @@ def create_dataset(
         rows=rows,
         columns=columns,
         col_names=col_names,
+        content=content,
         status="uploaded",
     )
     db.add(dataset)
