@@ -67,7 +67,7 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt bandit
       - name: Bandit SAST
-        run: bandit -c .bandit -r app/ -f json -o bandit-results.json || true
+        run: bandit -c ../.bandit -r app/ -f json -o bandit-results.json || true
       - name: Upload bandit results
         uses: actions/upload-artifact@v7
         if: always()
