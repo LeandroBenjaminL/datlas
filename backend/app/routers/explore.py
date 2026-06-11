@@ -4,9 +4,8 @@ Provides POST /api/explore/analyze to run a full EDA report
 on an uploaded dataset: profile, distributions, correlations, and statistics.
 
 All analysis reports are persisted in PostgreSQL for later retrieval.
+The file is resolved via tiered storage: local first, then S3.
 """
-
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -15,15 +14,9 @@ from app.db.crud import get_dataset_by_filename, save_analysis
 from app.db.database import get_db
 from app.schemas import ExploreAnalyzeRequest, ExploreAnalyzeResponse
 from app.services.explorer import DataExplorer
+from app.services.file_resolver import ensure_file_local
 
 router = APIRouter(prefix="/api", tags=["explore"])
-
-try:
-    DATA_RAW = Path("/app/data/raw")
-    DATA_RAW.mkdir(parents=True, exist_ok=True)
-except (OSError, PermissionError):
-    DATA_RAW = Path("data/raw")
-    DATA_RAW.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/explore/analyze", response_model=ExploreAnalyzeResponse)
@@ -45,14 +38,19 @@ async def explore_analyze(body: ExploreAnalyzeRequest, db: Session = Depends(get
         dict: EDA report with profile, distributions, correlations, and statistics sections.
 
     Raises:
-        HTTPException 404: If the file does not exist.
+        HTTPException 404: If the file does not exist locally or in S3.
         HTTPException 400: If the file is not a .csv.
     """
-    filepath = DATA_RAW / body.filename
-    if not filepath.exists():
-        raise HTTPException(404, f"File {body.filename} not found. Upload it first via POST /api/upload")
-    if filepath.suffix != ".csv":
+    if not body.filename.endswith(".csv"):
         raise HTTPException(400, "Only .csv files supported")
+
+    try:
+        filepath = ensure_file_local(body.filename, folder="raw", db=db)
+    except FileNotFoundError:
+        raise HTTPException(
+            404,
+            f"File {body.filename} not found. Upload it first via POST /api/upload",
+        )
 
     explorer = DataExplorer(str(filepath))
     report = explorer.analyze()

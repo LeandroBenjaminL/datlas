@@ -8,7 +8,7 @@ Tables:
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, LargeBinary, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -17,9 +17,9 @@ from app.db.database import Base
 class Dataset(Base):
     """Metadata for an uploaded dataset.
 
-    The raw CSV content is NOT persisted in the database — it lives on
-    ephemeral disk in development and should be downloaded by the user.
-    In production (Render), uploaded files are lost on each deploy.
+    Stores metadata and the raw CSV content (as BYTEA) so files survive
+    deploys on Render. Content is nullable for backwards compatibility
+    with datasets uploaded before this column existed.
     """
 
     __tablename__ = "datasets"
@@ -31,6 +31,7 @@ class Dataset(Base):
     rows: Mapped[int] = mapped_column(Integer, nullable=False)
     columns: Mapped[int] = mapped_column(Integer, nullable=False)
     col_names: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="uploaded")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

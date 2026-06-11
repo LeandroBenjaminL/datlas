@@ -1,11 +1,9 @@
 """Upload router — file ingestion endpoint.
 
 Provides the POST /api/upload endpoint for uploading CSV files.
-Validates file type, saves to ephemeral disk, persists metadata in PostgreSQL,
+Validates file type, saves to disk and S3, persists metadata in PostgreSQL,
 and returns basic dataset metadata.
 """
-
-from pathlib import Path
 
 import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -15,15 +13,9 @@ from app.config import settings
 from app.db.crud import create_dataset
 from app.db.database import get_db
 from app.schemas import UploadResponse
+from app.services.file_resolver import DATA_RAW, store_file
 
 router = APIRouter(prefix="/api", tags=["upload"])
-
-try:
-    DATA_DIR = Path("/app/data/raw")
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-except (OSError, PermissionError):
-    DATA_DIR = Path("data/raw")
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/upload", response_model=UploadResponse)
@@ -44,7 +36,8 @@ async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
     Raises:
         HTTPException 400: If the file is not a .csv.
     """
-    if not file.filename.endswith(".csv"):
+    filename = file.filename or "unnamed.csv"
+    if not filename.endswith(".csv"):
         raise HTTPException(400, "Solo archivos .csv")
 
     content = await file.read()
@@ -56,28 +49,30 @@ async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
             f"El archivo ({size_mb:.1f}MB) excede el límite de {settings.MAX_UPLOAD_SIZE_MB}MB",
         )
 
-    filepath = DATA_DIR / file.filename
-    filepath.write_bytes(content)
+    # Guardar en disco local
+    store_file(filename, content, folder="raw")
 
+    filepath = DATA_RAW / filename
     df = pd.read_csv(filepath)
     col_names = list(df.columns)
     size_kb = round(len(content) / 1024, 2)
     rows = len(df)
     columns = len(df.columns)
 
-    # Persist metadata in PostgreSQL
+    # Persist metadata + contenido CSV en PostgreSQL (sobrevive deploys en Render)
     create_dataset(
         db,
-        filename=file.filename,
-        original_filename=file.filename,
+        filename=filename,
+        original_filename=filename,
         size_kb=size_kb,
         rows=rows,
         columns=columns,
         col_names=col_names,
+        content=content,
     )
 
     return {
-        "filename": file.filename,
+        "filename": filename,
         "size_kb": size_kb,
         "rows": rows,
         "columns": columns,

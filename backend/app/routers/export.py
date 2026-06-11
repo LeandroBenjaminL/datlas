@@ -4,9 +4,9 @@ Provides:
 - GET /api/datasets — list all uploaded and processed datasets (from PostgreSQL)
 - GET /api/download/{filename} — download a processed (or raw) file
 - GET /api/datasets/{dataset_id}/analyses — get analysis history for a dataset
-"""
 
-from pathlib import Path
+Downloads use tiered storage: local first, then S3.
+"""
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -15,19 +15,9 @@ from sqlalchemy.orm import Session
 from app.db.crud import get_analyses, get_dataset_by_id, list_datasets
 from app.db.database import get_db
 from app.schemas import DatasetInfo, DatasetsResponse
+from app.services.file_resolver import ensure_file_local
 
 router = APIRouter(prefix="/api", tags=["export"])
-
-try:
-    DATA_RAW = Path("/app/data/raw")
-    DATA_RAW.mkdir(parents=True, exist_ok=True)
-    DATA_PROCESSED = Path("/app/data/processed")
-    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
-except (OSError, PermissionError):
-    DATA_RAW = Path("data/raw")
-    DATA_RAW.mkdir(parents=True, exist_ok=True)
-    DATA_PROCESSED = Path("data/processed")
-    DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 @router.get("/datasets", response_model=DatasetsResponse)
@@ -87,11 +77,10 @@ async def dataset_analyses(dataset_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/download/{filename:path}")
-async def download_file(filename: str):
+async def download_file(filename: str, db: Session = Depends(get_db)):
     """Download a processed or raw CSV file.
 
-    Checks processed/ first, then raw/. Files are ephemeral in production —
-    download them during the active session.
+    Checks processed/ first, then raw/. Uses tiered storage: local first, then S3.
 
     Args:
         filename: Name of the file.
@@ -102,22 +91,17 @@ async def download_file(filename: str):
     Raises:
         HTTPException 404: If the file is not found.
     """
-    processed_path = DATA_PROCESSED / filename
-    raw_path = DATA_RAW / filename
+    # Try processed/ first, then raw/
+    for folder in ("processed", "raw"):
+        try:
+            filepath = ensure_file_local(filename, folder=folder, db=db)
+            return FileResponse(
+                str(filepath),
+                media_type="text/csv",
+                filename=filename,
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+            )
+        except FileNotFoundError:
+            continue
 
-    if processed_path.exists():
-        return FileResponse(
-            str(processed_path),
-            media_type="text/csv",
-            filename=filename,
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-        )
-    elif raw_path.exists():
-        return FileResponse(
-            str(raw_path),
-            media_type="text/csv",
-            filename=filename,
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-        )
-    else:
-        raise HTTPException(404, f"File {filename} not found")
+    raise HTTPException(404, f"File {filename} not found")
