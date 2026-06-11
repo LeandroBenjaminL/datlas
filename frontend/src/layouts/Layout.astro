@@ -213,13 +213,13 @@ const { title = 'Datlas' } = Astro.props;
       }
 
       .glass-card {
-        background: var(--color-gate-bg);
-        border: 1px solid var(--color-gate-border);
+        background: #141414;
+        border: 1px solid #1f1f1f;
         border-radius: var(--radius);
         padding: 1.2rem;
         transition: border-color .3s var(--ease-expo);
       }
-      .glass-card:hover { border-color: rgba(0, 255, 102, 0.15); }
+      .glass-card:hover { border-color: rgba(0, 255, 102, 0.25); }
       .glass-card h3 {
         font-size: .65rem;
         font-weight: 600;
@@ -385,36 +385,44 @@ const { title = 'Datlas' } = Astro.props;
         text-decoration: none;
         display: block;
       }
+      a.card-link { color: inherit; text-decoration: none; display: block; }
+      a.card-link:visited { color: inherit; }
       .card-link .glass-card {
         cursor: pointer;
         transition: all .3s var(--ease-expo);
       }
       .card-link:hover .glass-card {
-        border-color: rgba(0, 255, 102, 0.2);
-        box-shadow: var(--color-true-glow);
+        border-color: rgba(0, 255, 102, 0.3);
+        box-shadow: 0 0 25px rgba(0, 255, 102, 0.12);
         transform: translateY(-2px);
       }
       .card-icon {
-        width: 44px; height: 44px;
+        width: 48px; height: 48px;
         border-radius: 12px;
-        border: 1px solid var(--border-glass);
-        background: var(--bg-secondary);
+        border: 1px solid rgba(0, 255, 102, 0.12);
+        background: rgba(0, 255, 102, 0.04);
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem;
-        margin-bottom: .8rem;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
       }
       .card-title {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 700;
-        letter-spacing: -.01em;
+        letter-spacing: -.02em;
         color: var(--color-text);
-        margin-bottom: .4rem;
+        margin-bottom: .5rem;
         line-height: 1.2;
       }
       .card-desc {
-        font-size: .65rem;
+        font-size: .7rem;
         color: var(--color-text-dim);
         line-height: 1.6;
+      }
+      .card-badges {
+        margin-top: 1rem;
+        display: flex;
+        gap: .3rem;
+        flex-wrap: wrap;
       }
 
       @media (max-width: 600px) {
