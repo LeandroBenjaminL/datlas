@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # ── Security ──
     CORS_ORIGINS: str = "*"  # Comma-separated origins, "*" for dev
     RATE_LIMIT: str = "100/minute"  # Global rate limit
-    MAX_UPLOAD_SIZE_MB: int = 50  # Max CSV upload size in megabytes
+    MAX_UPLOAD_SIZE_MB: int = 100  # Max CSV upload size in megabytes
 
     @property
     def cors_origins(self) -> list[str]:

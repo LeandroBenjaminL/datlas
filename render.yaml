@@ -51,7 +51,7 @@ services:
       - key: RATE_LIMIT
         value: "30/minute"
       - key: MAX_UPLOAD_SIZE_MB
-        value: "50"
+        value: "100"
       # AWS S3 (storage de archivos) — para persistir datasets grandes)
       - key: AWS_ACCESS_KEY_ID
         sync: false
