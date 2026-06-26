@@ -28,7 +28,7 @@ pytest==9.0.3
 pytest-asyncio==1.4.0
 pytest-cov==6.0.0
 hypothesis>=6.125
-ruff==0.8.6
+ruff==0.15.17
 bandit==1.9.4
 
 # ── Logging ──
