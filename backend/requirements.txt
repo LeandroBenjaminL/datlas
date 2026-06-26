@@ -12,7 +12,7 @@ pyarrow==18.1.0            # Parquet
 
 # ── Base de Datos ──
 sqlalchemy==2.0.36
-psycopg2-binary==2.9.10    # PostgreSQL driver
+psycopg2-binary==2.9.12    # PostgreSQL driver
 alembic==1.14.1            # Migraciones
 
 # ── API ──
@@ -20,15 +20,15 @@ python-multipart==0.0.19   # Upload de archivos
 httpx==0.28.1              # Cliente HTTP para tests
 
 # ── Visualización (backend genera charts) ──
-matplotlib==3.10.9
+matplotlib==3.11.0
 seaborn==0.13.2
 
 # ── Tests / Quality ──
 pytest==9.0.3
-pytest-asyncio==1.3.0
+pytest-asyncio==1.4.0
 pytest-cov==7.1.0
 hypothesis>=6.125
-ruff==0.8.6
+ruff==0.15.17
 bandit==1.9.4
 
 # ── Logging ──
