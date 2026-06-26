@@ -20,7 +20,7 @@ python-multipart==0.0.19   # Upload de archivos
 httpx==0.28.1              # Cliente HTTP para tests
 
 # ── Visualización (backend genera charts) ──
-matplotlib==3.10.9
+matplotlib==3.11.0
 seaborn==0.13.2
 
 # ── Tests / Quality ──
