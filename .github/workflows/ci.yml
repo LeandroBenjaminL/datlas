@@ -28,16 +28,22 @@ jobs:
             exit 0
           fi
 
-          # Get additions and deletions
-          DIFF=$(gh pr view $PR_NUMBER --json additions,deletions)
-          ADDITIONS=$(echo "$DIFF" | jq '.additions')
-          DELETIONS=$(echo "$DIFF" | jq '.deletions')
-          TOTAL=$((ADDITIONS + DELETIONS))
+          # Files to exclude from line count (auto-generated / lockfiles)
+          EXCLUDE_PATTERNS="package-lock.json|yarn.lock|requirements.txt|Pipfile.lock|poetry.lock"
+
+          # Get the diff and count only non-excluded lines
+          TOTAL=$(gh pr diff $PR_NUMBER | awk -v ex="$EXCLUDE_PATTERNS" '
+            /^diff --git / {
+              file = $3; gsub(/^b\//, "", file);
+              excluded = 0;
+              if (file ~ ex) excluded = 1;
+            }
+            /^[+-]/ && !excluded && !/^[+-]{3} / { count++ }
+            END { print count+0 }
+          ')
           BUDGET=400
 
-          echo "Additions: $ADDITIONS"
-          echo "Deletions: $DELETIONS"
-          echo "Total changed lines: $TOTAL"
+          echo "Changed lines (excluding lockfiles): $TOTAL"
           echo "Budget: $BUDGET"
 
           if [ "$TOTAL" -gt "$BUDGET" ]; then
