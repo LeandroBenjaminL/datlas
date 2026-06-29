@@ -11,7 +11,7 @@ openpyxl==3.1.5           # Excel
 pyarrow==18.1.0            # Parquet
 
 # ── Base de Datos ──
-sqlalchemy==2.0.36
+sqlalchemy==2.0.51
 psycopg2-binary==2.9.12    # PostgreSQL driver
 alembic==1.14.1            # Migraciones
 
