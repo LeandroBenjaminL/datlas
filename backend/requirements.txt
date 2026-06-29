@@ -35,7 +35,7 @@ bandit==1.9.4
 structlog==25.1.0          # Structured JSON logging
 
 # ── Security ──
-slowapi==0.1.9             # Rate limiting
+slowapi==0.1.10             # Rate limiting
 
 # ── S3 Storage ──
 boto3==1.38.0              # AWS SDK (S3 storage backend)
